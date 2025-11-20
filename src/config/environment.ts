@@ -4,6 +4,11 @@ interface Config {
   cors: {
     allowedOrigins: string[];
   };
+  bucket: {
+    projectId: string;
+    bucketName: string;
+    keyFilename?: string;
+  };
 }
 
 function validateConfig(): Config {
@@ -14,6 +19,11 @@ function validateConfig(): Config {
       allowedOrigins: process.env.ALLOWED_ORIGINS
         ? process.env.ALLOWED_ORIGINS.split(",")
         : ["http://localhost:3000", "http://localhost:8080", "null"],
+    },
+    bucket: {
+      projectId: process.env.GCP_PROJECT_ID || "",
+      bucketName: process.env.GCP_BUCKET_NAME || "",
+      keyFilename: process.env.GCP_KEY_FILENAME,
     },
   };
 }

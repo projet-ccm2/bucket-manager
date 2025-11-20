@@ -1,9 +1,14 @@
 import express from "express";
 import { config } from "./config/environment";
 import { logger } from "./utils/logger";
+import imageRoutes from "./routes/imageRoutes";
+import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
 app.disable("x-powered-by");
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -12,6 +17,10 @@ app.get("/health", (req, res) => {
     environment: config.nodeEnv,
   });
 });
+
+app.use("/bucket/image", imageRoutes);
+
+app.use(errorHandler);
 
 if (config.nodeEnv !== "test") {
   const server = app.listen(config.port, () => {
