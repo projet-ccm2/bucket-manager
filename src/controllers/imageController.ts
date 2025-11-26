@@ -14,14 +14,14 @@ export async function insertImage(
 
     if (!file) {
       res.status(400).json({
-        error: "Aucune image fournie",
+        error: "No image provided",
         status: 400,
         timestamp: new Date().toISOString(),
       });
       return;
     }
 
-    logger.info("Traitement de l'image", {
+    logger.info("Processing image", {
       typeImage,
       userId,
       originalName: file.originalname,
@@ -35,7 +35,7 @@ export async function insertImage(
     res.status(200).json({
       success: true,
       key,
-      message: "Image uploadée avec succès",
+      message: "Image uploaded successfully",
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -51,7 +51,7 @@ export async function getImage(
   try {
     const { typeImage, userId } = req.query;
 
-    logger.info("Récupération de l'URL de l'image", {
+    logger.info("Retrieving image URL", {
       typeImage,
       userId,
     });

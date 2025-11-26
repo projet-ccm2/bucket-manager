@@ -7,7 +7,7 @@ export function errorHandler(
   res: Response,
   next: NextFunction,
 ): void {
-  logger.error("Erreur dans le middleware", {
+  logger.error("Error in middleware", {
     error: err.message,
     stack: err.stack,
     path: req.path,
@@ -19,7 +19,7 @@ export function errorHandler(
   }
 
   const statusCode = (err as any).statusCode || 500;
-  const message = err.message || "Erreur interne du serveur";
+  const message = err.message || "Internal server error";
 
   res.status(statusCode).json({
     error: message,

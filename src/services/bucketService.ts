@@ -2,11 +2,15 @@ import { Storage } from "@google-cloud/storage";
 import { config } from "../config/environment";
 import { logger } from "../utils/logger";
 
-const storage = new Storage({
+const storageConfig: any = {
   projectId: config.bucket.projectId,
-  keyFilename: config.bucket.keyFilename,
-});
+};
 
+if (config.bucket.keyFilename && !process.env.STORAGE_EMULATOR_HOST) {
+  storageConfig.keyFilename = config.bucket.keyFilename;
+}
+
+const storage = new Storage(storageConfig);
 const bucket = storage.bucket(config.bucket.bucketName);
 
 export async function uploadImage(
@@ -25,7 +29,7 @@ export async function uploadImage(
       },
     });
 
-    logger.info("Image uploadée avec succès", {
+    logger.info("Image uploaded successfully", {
       fileName,
       imageType,
       userId,
@@ -33,13 +37,13 @@ export async function uploadImage(
 
     return fileName;
   } catch (error) {
-    logger.error("Erreur lors de l'upload de l'image", {
+    logger.error("Error uploading image", {
       error,
       fileName,
       imageType,
       userId,
     });
-    throw new Error("Échec de l'upload de l'image dans le bucket");
+    throw new Error("Failed to upload image to bucket");
   }
 }
 
@@ -54,10 +58,10 @@ export async function getImageUrl(
 
     const [url] = await file.getSignedUrl({
       action: "read",
-      expires: Date.now() + 3600 * 1000, // 1 heure
+      expires: Date.now() + 3600 * 1000,
     });
 
-    logger.info("URL d'image générée avec succès", {
+    logger.info("Image URL generated successfully", {
       fileName,
       imageType,
       userId,
@@ -65,13 +69,13 @@ export async function getImageUrl(
 
     return url;
   } catch (error) {
-    logger.error("Erreur lors de la génération de l'URL", {
+    logger.error("Error generating URL", {
       error,
       fileName,
       imageType,
       userId,
     });
-    throw new Error("Échec de la récupération de l'URL de l'image");
+    throw new Error("Failed to retrieve image URL");
   }
 }
 

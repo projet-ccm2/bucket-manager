@@ -5,39 +5,39 @@ import { logger } from "../utils/logger";
 export const validateInsertImage = [
   body("typeImage")
     .notEmpty()
-    .withMessage("Le champ 'typeImage' est requis")
+    .withMessage("The 'typeImage' field is required")
     .isString()
-    .withMessage("Le champ 'typeImage' doit être une chaîne de caractères")
+    .withMessage("The 'typeImage' field must be a string")
     .trim()
     .isLength({ min: 1, max: 100 })
-    .withMessage("Le champ 'typeImage' doit contenir entre 1 et 100 caractères"),
+    .withMessage("The 'typeImage' field must contain between 1 and 100 characters"),
   body("userId")
     .notEmpty()
-    .withMessage("Le champ 'userId' est requis")
+    .withMessage("The 'userId' field is required")
     .isString()
-    .withMessage("Le champ 'userId' doit être une chaîne de caractères")
+    .withMessage("The 'userId' field must be a string")
     .trim()
     .isLength({ min: 1, max: 255 })
-    .withMessage("Le champ 'userId' doit contenir entre 1 et 255 caractères"),
+    .withMessage("The 'userId' field must contain between 1 and 255 characters"),
 ];
 
 export const validateGetImage = [
   query("typeImage")
     .notEmpty()
-    .withMessage("Le paramètre 'typeImage' est requis")
+    .withMessage("The 'typeImage' parameter is required")
     .isString()
-    .withMessage("Le paramètre 'typeImage' doit être une chaîne de caractères")
+    .withMessage("The 'typeImage' parameter must be a string")
     .trim()
     .isLength({ min: 1, max: 100 })
-    .withMessage("Le paramètre 'typeImage' doit contenir entre 1 et 100 caractères"),
+    .withMessage("The 'typeImage' parameter must contain between 1 and 100 characters"),
   query("userId")
     .notEmpty()
-    .withMessage("Le paramètre 'userId' est requis")
+    .withMessage("The 'userId' parameter is required")
     .isString()
-    .withMessage("Le paramètre 'userId' doit être une chaîne de caractères")
+    .withMessage("The 'userId' parameter must be a string")
     .trim()
     .isLength({ min: 1, max: 255 })
-    .withMessage("Le paramètre 'userId' doit contenir entre 1 et 255 caractères"),
+    .withMessage("The 'userId' parameter must contain between 1 and 255 characters"),
 ];
 
 export function handleValidationErrors(
@@ -52,7 +52,7 @@ export function handleValidationErrors(
       .map((err) => `${err.type === "field" ? err.path : "field"}: ${err.msg}`)
       .join(", ");
 
-    logger.warn("Erreur de validation", {
+    logger.warn("Validation error", {
       errors: errors.array(),
       path: req.path,
     });

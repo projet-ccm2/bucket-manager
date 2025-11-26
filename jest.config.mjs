@@ -22,7 +22,8 @@ export default {
       statements: 100,
     },
   },
-  testMatch: ["**/src/**/*.test.{ts,tsx}", "**/src/**/*.spec.{ts,tsx}"],
+  testMatch: ["**/test/**/*.test.{ts,tsx}", "**/test/**/*.spec.{ts,tsx}", "**/src/**/*.test.{ts,tsx}", "**/src/**/*.spec.{ts,tsx}"],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
   setupFilesAfterEnv: ["<rootDir>/src/tests/setup.ts"],
+  testTimeout: 60000,
 };

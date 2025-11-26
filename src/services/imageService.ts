@@ -25,7 +25,7 @@ export function validateImageFormat(mimetype: string): ImageValidationResult {
   if (!ALLOWED_MIME_TYPES.includes(mimetype.toLowerCase())) {
     return {
       isValid: false,
-      error: `Format d'image non autorisé. Formats acceptés: ${ALLOWED_FORMATS.join(", ")}`,
+      error: `Image format not allowed. Allowed formats: ${ALLOWED_FORMATS.join(", ")}`,
     };
   }
   return { isValid: true };
@@ -42,8 +42,8 @@ export async function convertToWebP(
       format: "webp",
     };
   } catch (error) {
-    logger.error("Erreur lors de la conversion en WebP", { error });
-    throw new Error("Échec de la conversion de l'image en WebP");
+    logger.error("Error converting to WebP", { error });
+    throw new Error("Failed to convert image to WebP");
   }
 }
 
@@ -67,22 +67,22 @@ export async function checkForHiddenScripts(
 
     for (const pattern of dangerousPatterns) {
       if (pattern.test(bufferString)) {
-        logger.warn("Script caché détecté dans l'image", {
+        logger.warn("Hidden script detected in image", {
           pattern: pattern.toString(),
         });
         return {
           isValid: false,
-          error: "L'image contient des scripts cachés potentiellement dangereux",
+          error: "Image contains potentially dangerous hidden scripts",
         };
       }
     }
 
     return { isValid: true };
   } catch (error) {
-    logger.error("Erreur lors de la vérification de sécurité", { error });
+    logger.error("Error during security check", { error });
     return {
       isValid: false,
-      error: "Erreur lors de la vérification de sécurité de l'image",
+      error: "Error during image security verification",
     };
   }
 }
