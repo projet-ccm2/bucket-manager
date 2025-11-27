@@ -10,7 +10,7 @@ export async function insertImage(
 ): Promise<void> {
   try {
     const file = req.file;
-    const { typeImage, userId } = req.body;
+    const { typeImage, elementId } = req.body;
 
     if (!file) {
       res.status(400).json({
@@ -23,14 +23,14 @@ export async function insertImage(
 
     logger.info("Processing image", {
       typeImage,
-      userId,
+      elementId,
       originalName: file.originalname,
       mimetype: file.mimetype,
       size: file.size,
     });
 
     const processedImage = await processImage(file.buffer);
-    const key = await uploadImage(processedImage.buffer, typeImage, userId);
+    const key = await uploadImage(processedImage.buffer, typeImage, elementId);
 
     res.status(200).json({
       success: true,
@@ -49,14 +49,14 @@ export async function getImage(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const { typeImage, userId } = req.query;
+    const { typeImage, elementId } = req.query;
 
     logger.info("Retrieving image URL", {
       typeImage,
-      userId,
+      elementId,
     });
 
-    const url = await getImageUrl(typeImage as string, userId as string);
+    const url = await getImageUrl(typeImage as string, elementId as string);
 
     res.status(200).json({
       success: true,

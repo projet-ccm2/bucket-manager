@@ -51,11 +51,11 @@ describe("bucketService - Integration tests", () => {
   it("should upload an image to the bucket", async () => {
     const imageBuffer = Buffer.from("fake-image-data");
     const imageType = "avatar";
-    const userId = "user123";
+    const elementId = "user123";
 
-    const fileName = await uploadImage(imageBuffer, imageType, userId);
+    const fileName = await uploadImage(imageBuffer, imageType, elementId);
 
-    expect(fileName).toBe(`assets/image/${imageType}/${userId}.webp`);
+    expect(fileName).toBe(`assets/image/${imageType}/${elementId}.webp`);
 
     const bucket = storage.bucket(bucketName);
     const file = bucket.file(fileName);
@@ -69,11 +69,11 @@ describe("bucketService - Integration tests", () => {
   it("should retrieve signed URL of an uploaded image", async () => {
     const imageBuffer = Buffer.from("fake-image-data");
     const imageType = "profile";
-    const userId = "user456";
+    const elementId = "user456";
 
-    await uploadImage(imageBuffer, imageType, userId);
+    await uploadImage(imageBuffer, imageType, elementId);
 
-    const url = await getImageUrl(imageType, userId);
+    const url = await getImageUrl(imageType, elementId);
 
     expect(url).toBeTruthy();
     expect(typeof url).toBe("string");

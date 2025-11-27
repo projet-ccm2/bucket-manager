@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "bucket-manager-api-collection",
 		"name": "Bucket Manager API",
-		"description": "Collection Postman pour tester les routes de l'API Bucket Manager",
+		"description": "Postman collection to test Bucket Manager API routes",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -20,7 +20,7 @@
 						"health"
 					]
 				},
-				"description": "Vérifie l'état de santé du serveur"
+				"description": "Checks the health status of the server"
 			},
 			"response": []
 		},
@@ -39,19 +39,19 @@
 									"key": "image",
 									"type": "file",
 									"src": [],
-									"description": "Fichier image à uploader"
+									"description": "Image file to upload"
 								},
 								{
 									"key": "typeImage",
 									"value": "profile",
 									"type": "text",
-									"description": "Type d'image (1-100 caractères)"
+									"description": "Image type (1-100 characters)"
 								},
 								{
-									"key": "userId",
+									"key": "elementId",
 									"value": "user123",
 									"type": "text",
-									"description": "ID de l'utilisateur (1-255 caractères)"
+									"description": "Element ID (1-255 characters)"
 								}
 							]
 						},
@@ -66,7 +66,7 @@
 								"insert"
 							]
 						},
-						"description": "Upload une image dans le bucket. Requiert un fichier image, typeImage et userId."
+						"description": "Upload an image to the bucket. Requires an image file, typeImage and elementId."
 					},
 					"response": []
 				},
@@ -76,7 +76,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/bucket/image/get?typeImage=profile&userId=user123",
+							"raw": "{{baseUrl}}/bucket/image/get?typeImage=profile&elementId=user123",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -89,21 +89,21 @@
 								{
 									"key": "typeImage",
 									"value": "profile",
-									"description": "Type d'image (1-100 caractères)"
+									"description": "Image type (1-100 characters)"
 								},
 								{
-									"key": "userId",
+									"key": "elementId",
 									"value": "user123",
-									"description": "ID de l'utilisateur (1-255 caractères)"
+									"description": "Element ID (1-255 characters)"
 								}
 							]
 						},
-						"description": "Récupère l'URL de l'image depuis le bucket. Requiert typeImage et userId en paramètres de requête."
+						"description": "Retrieves the image URL from the bucket. Requires typeImage and elementId as query parameters."
 					},
 					"response": []
 				}
 			],
-			"description": "Routes pour la gestion des images"
+			"description": "Routes for image management"
 		}
 	],
 	"variable": [

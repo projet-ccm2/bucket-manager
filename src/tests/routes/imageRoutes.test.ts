@@ -45,7 +45,7 @@ describe("imageRoutes", () => {
       const response = await request(app)
         .post("/bucket/image/insert")
         .field("typeImage", "avatar")
-        .field("userId", "user123")
+        .field("elementId", "user123")
         .attach("image", Buffer.from("test"), "test.jpg");
 
       expect(response.status).toBe(200);
@@ -56,7 +56,7 @@ describe("imageRoutes", () => {
       const response = await request(app)
         .post("/bucket/image/insert")
         .field("typeImage", "")
-        .field("userId", "user123")
+        .field("elementId", "user123")
         .attach("image", Buffer.from("test"), "test.jpg");
 
       expect(response.status).toBe(400);
@@ -77,7 +77,7 @@ describe("imageRoutes", () => {
         });
 
       const response = await request(app).get(
-        "/bucket/image/get?typeImage=avatar&userId=user123",
+        "/bucket/image/get?typeImage=avatar&elementId=user123",
       );
 
       expect(response.status).toBe(200);

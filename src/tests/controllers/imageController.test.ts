@@ -51,7 +51,7 @@ describe("imageController", () => {
       mockRequest.file = mockFile;
       mockRequest.body = {
         typeImage: "avatar",
-        userId: "user123",
+        elementId: "user123",
       };
 
       jest
@@ -86,7 +86,7 @@ describe("imageController", () => {
       mockRequest.file = undefined;
       mockRequest.body = {
         typeImage: "avatar",
-        userId: "user123",
+        elementId: "user123",
       };
 
       await insertImage(
@@ -117,7 +117,7 @@ describe("imageController", () => {
       mockRequest.file = mockFile;
       mockRequest.body = {
         typeImage: "avatar",
-        userId: "user123",
+        elementId: "user123",
       };
 
       jest.spyOn(imageService, "processImage").mockRejectedValue(mockError);
@@ -149,7 +149,7 @@ describe("imageController", () => {
       mockRequest.file = mockFile;
       mockRequest.body = {
         typeImage: "avatar",
-        userId: "user123",
+        elementId: "user123",
       };
 
       jest
@@ -171,7 +171,7 @@ describe("imageController", () => {
     it("should retrieve image URL successfully", async () => {
       mockRequest.query = {
         typeImage: "avatar",
-        userId: "user123",
+        elementId: "user123",
       };
 
       jest
@@ -192,7 +192,7 @@ describe("imageController", () => {
     it("should call next with error if getImageUrl fails", async () => {
       mockRequest.query = {
         typeImage: "avatar",
-        userId: "user123",
+        elementId: "user123",
       };
 
       const mockError = new Error("URL generation failed");

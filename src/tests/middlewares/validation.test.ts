@@ -54,13 +54,13 @@ describe("validation middleware", () => {
   });
 
   describe("validateInsertImage", () => {
-    it("should contain validators for typeImage and userId", () => {
+    it("should contain validators for typeImage and elementId", () => {
       expect(validateInsertImage).toHaveLength(2);
     });
   });
 
   describe("validateGetImage", () => {
-    it("should contain validators for typeImage and userId in query", () => {
+    it("should contain validators for typeImage and elementId in query", () => {
       expect(validateGetImage).toHaveLength(2);
     });
   });
@@ -91,8 +91,8 @@ describe("validation middleware", () => {
         },
         {
           type: "field" as const,
-          path: "userId",
-          msg: "The 'userId' field is required",
+          path: "elementId",
+          msg: "The 'elementId' field is required",
         },
       ];
 

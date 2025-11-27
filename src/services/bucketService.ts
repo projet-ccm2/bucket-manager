@@ -16,9 +16,9 @@ const bucket = storage.bucket(config.bucket.bucketName);
 export async function uploadImage(
   imageBuffer: Buffer,
   imageType: string,
-  userId: string,
+  elementId: string,
 ): Promise<string> {
-  const fileName = `assets/image/${imageType}/${userId}.webp`;
+  const fileName = `assets/image/${imageType}/${elementId}.webp`;
 
   try {
     const file = bucket.file(fileName);
@@ -32,7 +32,7 @@ export async function uploadImage(
     logger.info("Image uploaded successfully", {
       fileName,
       imageType,
-      userId,
+      elementId,
     });
 
     return fileName;
@@ -41,7 +41,7 @@ export async function uploadImage(
       error,
       fileName,
       imageType,
-      userId,
+      elementId,
     });
     throw new Error("Failed to upload image to bucket");
   }
@@ -49,9 +49,9 @@ export async function uploadImage(
 
 export async function getImageUrl(
   imageType: string,
-  userId: string,
+  elementId: string,
 ): Promise<string> {
-  const fileName = `assets/image/${imageType}/${userId}.webp`;
+  const fileName = `assets/image/${imageType}/${elementId}.webp`;
 
   try {
     const file = bucket.file(fileName);
@@ -64,7 +64,7 @@ export async function getImageUrl(
     logger.info("Image URL generated successfully", {
       fileName,
       imageType,
-      userId,
+      elementId,
     });
 
     return url;
@@ -73,7 +73,7 @@ export async function getImageUrl(
       error,
       fileName,
       imageType,
-      userId,
+      elementId,
     });
     throw new Error("Failed to retrieve image URL");
   }

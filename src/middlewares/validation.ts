@@ -11,14 +11,14 @@ export const validateInsertImage = [
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage("The 'typeImage' field must contain between 1 and 100 characters"),
-  body("userId")
+  body("elementId")
     .notEmpty()
-    .withMessage("The 'userId' field is required")
+    .withMessage("The 'elementId' field is required")
     .isString()
-    .withMessage("The 'userId' field must be a string")
+    .withMessage("The 'elementId' field must be a string")
     .trim()
     .isLength({ min: 1, max: 255 })
-    .withMessage("The 'userId' field must contain between 1 and 255 characters"),
+    .withMessage("The 'elementId' field must contain between 1 and 255 characters"),
 ];
 
 export const validateGetImage = [
@@ -30,14 +30,14 @@ export const validateGetImage = [
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage("The 'typeImage' parameter must contain between 1 and 100 characters"),
-  query("userId")
+  query("elementId")
     .notEmpty()
-    .withMessage("The 'userId' parameter is required")
+    .withMessage("The 'elementId' parameter is required")
     .isString()
-    .withMessage("The 'userId' parameter must be a string")
+    .withMessage("The 'elementId' parameter must be a string")
     .trim()
     .isLength({ min: 1, max: 255 })
-    .withMessage("The 'userId' parameter must contain between 1 and 255 characters"),
+    .withMessage("The 'elementId' parameter must contain between 1 and 255 characters"),
 ];
 
 export function handleValidationErrors(

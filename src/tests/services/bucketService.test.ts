@@ -42,13 +42,13 @@ describe("bucketService - Tests unitaires", () => {
     it("should upload an image successfully", async () => {
       const imageBuffer = Buffer.from("test-image-data");
       const imageType = "avatar";
-      const userId = "user123";
+      const elementId = "user123";
 
-      const result = await uploadImage(imageBuffer, imageType, userId);
+      const result = await uploadImage(imageBuffer, imageType, elementId);
 
-      expect(result).toBe(`assets/image/${imageType}/${userId}.webp`);
+      expect(result).toBe(`assets/image/${imageType}/${elementId}.webp`);
       expect(mockBucket.file).toHaveBeenCalledWith(
-        `assets/image/${imageType}/${userId}.webp`,
+        `assets/image/${imageType}/${elementId}.webp`,
       );
       expect(mockFile.save).toHaveBeenCalledWith(imageBuffer, {
         metadata: {
@@ -60,13 +60,13 @@ describe("bucketService - Tests unitaires", () => {
     it("should handle errors during upload", async () => {
       const imageBuffer = Buffer.from("test-image-data");
       const imageType = "avatar";
-      const userId = "user123";
+      const elementId = "user123";
       const mockError = new Error("Upload failed");
 
       mockFile.save.mockRejectedValue(mockError);
 
       await expect(
-        uploadImage(imageBuffer, imageType, userId),
+        uploadImage(imageBuffer, imageType, elementId),
       ).rejects.toThrow("Failed to upload image to bucket");
     });
   });
@@ -74,13 +74,13 @@ describe("bucketService - Tests unitaires", () => {
   describe("getImageUrl", () => {
     it("should retrieve signed URL successfully", async () => {
       const imageType = "avatar";
-      const userId = "user123";
+      const elementId = "user123";
 
-      const result = await getImageUrl(imageType, userId);
+      const result = await getImageUrl(imageType, elementId);
 
       expect(result).toBe("https://signed-url.com");
       expect(mockBucket.file).toHaveBeenCalledWith(
-        `assets/image/${imageType}/${userId}.webp`,
+        `assets/image/${imageType}/${elementId}.webp`,
       );
       expect(mockFile.getSignedUrl).toHaveBeenCalledWith({
         action: "read",
@@ -90,10 +90,10 @@ describe("bucketService - Tests unitaires", () => {
 
     it("should generate a URL with expiration in 1 hour", async () => {
       const imageType = "avatar";
-      const userId = "user123";
+      const elementId = "user123";
       const now = Date.now();
 
-      await getImageUrl(imageType, userId);
+      await getImageUrl(imageType, elementId);
 
       const callArgs = mockFile.getSignedUrl.mock.calls[0][0];
       expect(callArgs.expires).toBeGreaterThan(now);
@@ -102,7 +102,7 @@ describe("bucketService - Tests unitaires", () => {
 
     it("should handle errors during URL retrieval", async () => {
       const imageType = "avatar";
-      const userId = "user123";
+      const elementId = "user123";
       const mockError = new Error("URL generation failed");
 
       mockFile.getSignedUrl.mockRejectedValue(mockError);
