@@ -10,21 +10,24 @@ describe("logger", () => {
     const originalEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = "development";
 
-    const loggerDev = require("../../src/utils/logger").logger;
+    jest.resetModules();
+    const loggerDev = require("../../utils/logger").logger;
     expect(loggerDev.level).toBe("debug");
 
     process.env.NODE_ENV = originalEnv;
+    jest.resetModules();
   });
 
   it("should have info level in production", () => {
     const originalEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = "production";
 
-    delete require.cache[require.resolve("../../src/utils/logger")];
-    const loggerProd = require("../../src/utils/logger").logger;
+    jest.resetModules();
+    const loggerProd = require("../../utils/logger").logger;
     expect(loggerProd.level).toBe("info");
 
     process.env.NODE_ENV = originalEnv;
+    jest.resetModules();
   });
 
   it("should have logging methods", () => {

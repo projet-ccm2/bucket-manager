@@ -3,9 +3,9 @@ import { insertImage, getImage } from "../../controllers/imageController";
 import * as imageService from "../../services/imageService";
 import * as bucketService from "../../services/bucketService";
 
-jest.mock("../../src/services/imageService");
-jest.mock("../../src/services/bucketService");
-jest.mock("../../src/utils/logger", () => ({
+jest.mock("../../services/imageService");
+jest.mock("../../services/bucketService");
+jest.mock("../../utils/logger", () => ({
   logger: {
     info: jest.fn(),
     error: jest.fn(),

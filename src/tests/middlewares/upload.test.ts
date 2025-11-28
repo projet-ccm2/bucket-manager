@@ -2,7 +2,7 @@ import multer from "multer";
 import { upload } from "../../middlewares/upload";
 import * as imageService from "../../services/imageService";
 
-jest.mock("../../src/services/imageService");
+jest.mock("../../services/imageService");
 
 describe("upload middleware", () => {
   let mockRequest: Partial<Express.Request>;
@@ -50,17 +50,18 @@ describe("upload middleware", () => {
 
     expect(imageService.validateImageFormat).toHaveBeenCalledWith("image/jpeg");
     expect(mockCallback).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Image format not allowed" }),
-      false,
+      expect.any(Error),
     );
+    const error = mockCallback.mock.calls[0][0] as Error;
+    expect(error.message).toContain("Image format not allowed");
   });
 
   it("should have a file size limit of 10MB", () => {
-    expect(upload.limits.fileSize).toBe(10 * 1024 * 1024);
+    expect((upload as any).limits.fileSize).toBe(10 * 1024 * 1024);
   });
 
   it("should use memoryStorage", () => {
-    expect(upload.storage).toBeDefined();
+    expect((upload as any).storage).toBeDefined();
   });
 });
 

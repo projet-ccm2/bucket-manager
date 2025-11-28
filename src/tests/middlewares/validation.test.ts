@@ -25,7 +25,7 @@ jest.mock("express-validator", () => ({
   })),
 }));
 
-jest.mock("../../src/utils/logger", () => ({
+jest.mock("../../utils/logger", () => ({
   logger: {
     warn: jest.fn(),
   },
@@ -67,7 +67,7 @@ describe("validation middleware", () => {
 
   describe("handleValidationErrors", () => {
     it("should call next if no validation errors", () => {
-      (validationResult as jest.Mock).mockReturnValue({
+      (validationResult as unknown as jest.Mock).mockReturnValue({
         isEmpty: jest.fn().mockReturnValue(true),
         array: jest.fn().mockReturnValue([]),
       });
@@ -96,7 +96,7 @@ describe("validation middleware", () => {
         },
       ];
 
-      (validationResult as jest.Mock).mockReturnValue({
+      (validationResult as unknown as jest.Mock).mockReturnValue({
         isEmpty: jest.fn().mockReturnValue(false),
         array: jest.fn().mockReturnValue(mockErrors),
       });
@@ -125,7 +125,7 @@ describe("validation middleware", () => {
         },
       ];
 
-      (validationResult as jest.Mock).mockReturnValue({
+      (validationResult as unknown as jest.Mock).mockReturnValue({
         isEmpty: jest.fn().mockReturnValue(false),
         array: jest.fn().mockReturnValue(mockErrors),
       });

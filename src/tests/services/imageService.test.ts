@@ -7,7 +7,7 @@ import {
 } from "../../services/imageService";
 
 jest.mock("sharp");
-jest.mock("../../src/utils/logger", () => ({
+jest.mock("../../utils/logger", () => ({
   logger: {
     error: jest.fn(),
     warn: jest.fn(),
@@ -176,7 +176,7 @@ describe("imageService", () => {
 
       const result = await checkForHiddenScripts(mockBuffer);
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain("Error during security verification");
+      expect(result.error).toContain("Error during image security verification");
     });
   });
 

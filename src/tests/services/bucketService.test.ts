@@ -1,9 +1,23 @@
 import { Storage } from "@google-cloud/storage";
-import { uploadImage, getImageUrl } from "../../services/bucketService";
-import { config } from "../../config/environment";
 
-jest.mock("@google-cloud/storage");
-jest.mock("../../src/utils/logger", () => ({
+const mockFile = {
+  save: jest.fn().mockResolvedValue(undefined),
+  getSignedUrl: jest.fn().mockResolvedValue(["https://signed-url.com"]),
+};
+
+const mockBucket = {
+  file: jest.fn().mockReturnValue(mockFile),
+};
+
+const mockStorageInstance = {
+  bucket: jest.fn().mockReturnValue(mockBucket),
+};
+
+jest.mock("@google-cloud/storage", () => ({
+  Storage: jest.fn().mockImplementation(() => mockStorageInstance),
+}));
+
+jest.mock("../../utils/logger", () => ({
   logger: {
     info: jest.fn(),
     error: jest.fn(),
@@ -11,27 +25,22 @@ jest.mock("../../src/utils/logger", () => ({
 }));
 
 describe("bucketService - Tests unitaires", () => {
-  let mockBucket: any;
-  let mockFile: any;
-  let mockStorage: jest.MockedClass<typeof Storage>;
-
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetModules();
+    
     process.env.STORAGE_EMULATOR_HOST = "";
+    process.env.GCP_PROJECT_ID = "test-project";
+    process.env.GCP_BUCKET_NAME = "test-bucket";
 
-    mockFile = {
-      save: jest.fn().mockResolvedValue(undefined),
-      getSignedUrl: jest.fn().mockResolvedValue(["https://signed-url.com"]),
-    };
+    mockFile.save.mockResolvedValue(undefined);
+    mockFile.getSignedUrl.mockResolvedValue(["https://signed-url.com"]);
+    mockBucket.file.mockReturnValue(mockFile);
+    mockStorageInstance.bucket.mockReturnValue(mockBucket);
+  });
 
-    mockBucket = {
-      file: jest.fn().mockReturnValue(mockFile),
-    };
-
-    mockStorage = Storage as jest.MockedClass<typeof Storage>;
-    (mockStorage as any).mockImplementation(() => ({
-      bucket: jest.fn().mockReturnValue(mockBucket),
-    } as any));
+  afterEach(() => {
+    jest.resetModules();
   });
 
   afterEach(() => {
@@ -40,6 +49,7 @@ describe("bucketService - Tests unitaires", () => {
 
   describe("uploadImage", () => {
     it("should upload an image successfully", async () => {
+      const { uploadImage } = await import("../../services/bucketService");
       const imageBuffer = Buffer.from("test-image-data");
       const imageType = "avatar";
       const elementId = "user123";
@@ -65,6 +75,7 @@ describe("bucketService - Tests unitaires", () => {
 
       mockFile.save.mockRejectedValue(mockError);
 
+      const { uploadImage } = await import("../../services/bucketService");
       await expect(
         uploadImage(imageBuffer, imageType, elementId),
       ).rejects.toThrow("Failed to upload image to bucket");
@@ -73,6 +84,7 @@ describe("bucketService - Tests unitaires", () => {
 
   describe("getImageUrl", () => {
     it("should retrieve signed URL successfully", async () => {
+      const { getImageUrl } = await import("../../services/bucketService");
       const imageType = "avatar";
       const elementId = "user123";
 
@@ -89,6 +101,7 @@ describe("bucketService - Tests unitaires", () => {
     });
 
     it("should generate a URL with expiration in 1 hour", async () => {
+      const { getImageUrl } = await import("../../services/bucketService");
       const imageType = "avatar";
       const elementId = "user123";
       const now = Date.now();
@@ -107,7 +120,8 @@ describe("bucketService - Tests unitaires", () => {
 
       mockFile.getSignedUrl.mockRejectedValue(mockError);
 
-      await expect(getImageUrl(imageType, userId)).rejects.toThrow(
+      const { getImageUrl } = await import("../../services/bucketService");
+      await expect(getImageUrl(imageType, elementId)).rejects.toThrow(
         "Failed to retrieve image URL",
       );
     });

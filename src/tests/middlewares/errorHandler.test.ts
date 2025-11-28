@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { errorHandler } from "../../middlewares/errorHandler";
 
-jest.mock("../../src/utils/logger", () => ({
+jest.mock("../../utils/logger", () => ({
   logger: {
     error: jest.fn(),
   },
