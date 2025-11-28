@@ -24,7 +24,7 @@ jest.mock("../../utils/logger", () => ({
   },
 }));
 
-describe("bucketService - Tests unitaires", () => {
+describe("bucketService - Unit tests", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetModules();

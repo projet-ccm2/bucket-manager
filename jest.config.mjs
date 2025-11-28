@@ -11,7 +11,7 @@ export default {
     "!src/tests/**",
     "!src/**/*.test.{ts,tsx}",
     "!src/**/*.spec.{ts,tsx}",
-    "!src/index.ts", // Exclude server startup/shutdown code
+    "!src/index.ts",
   ],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "html", "json"],

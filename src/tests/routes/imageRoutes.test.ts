@@ -48,12 +48,9 @@ describe("imageRoutes", () => {
         .field("elementId", "user123")
         .attach("image", Buffer.from("test"), "test.jpg");
 
-      // The validation middleware runs before the controller, so we need to check if it passed
-      // If validation passes, insertImage should be called
       if (response.status === 200) {
         expect(imageController.insertImage).toHaveBeenCalled();
       } else {
-        // If validation fails, the test should still pass as it's testing the route setup
         expect(response.status).toBe(400);
       }
     });

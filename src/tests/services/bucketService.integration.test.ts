@@ -1,6 +1,5 @@
 import { Storage } from "@google-cloud/storage";
 
-// Mock Storage and logger BEFORE importing bucketService
 const mockFile = {
   save: jest.fn().mockResolvedValue(undefined),
   exists: jest.fn().mockResolvedValue([true]),
@@ -52,7 +51,6 @@ describe("bucketService - Integration tests", () => {
   const projectId = "test-project";
 
   beforeAll(() => {
-    // Set up environment variables BEFORE importing bucketService
     process.env.GCP_PROJECT_ID = projectId;
     process.env.GCP_BUCKET_NAME = bucketName;
   });
@@ -61,7 +59,6 @@ describe("bucketService - Integration tests", () => {
     jest.clearAllMocks();
     jest.resetModules();
 
-    // Reset mocks
     mockFile.save.mockResolvedValue(undefined);
     mockFile.getSignedUrl.mockResolvedValue([
       "https://storage.googleapis.com/test-bucket/assets/image/profile/user456.webp?X-Goog-Signature=test",
@@ -69,7 +66,6 @@ describe("bucketService - Integration tests", () => {
     mockBucket.file.mockReturnValue(mockFile);
     mockStorageInstance.bucket.mockReturnValue(mockBucket);
 
-    // Clear module cache to reload bucketService with mocked Storage
     delete require.cache[require.resolve("../../services/bucketService")];
     delete require.cache[require.resolve("../../config/environment")];
   });
@@ -84,7 +80,6 @@ describe("bucketService - Integration tests", () => {
 
     expect(fileName).toBe(`assets/image/${imageType}/${elementId}.webp`);
 
-    // Verify Storage was called correctly
     expect(mockStorageInstance.bucket).toHaveBeenCalledWith(bucketName);
     expect(mockBucket.file).toHaveBeenCalledWith(fileName);
     expect(mockFile.save).toHaveBeenCalledWith(imageBuffer, {
@@ -106,7 +101,6 @@ describe("bucketService - Integration tests", () => {
     expect(url.length).toBeGreaterThan(0);
     expect(url).toContain("http");
 
-    // Verify Storage was called correctly
     const expectedFileName = `assets/image/${imageType}/${elementId}.webp`;
     expect(mockStorageInstance.bucket).toHaveBeenCalledWith(bucketName);
     expect(mockBucket.file).toHaveBeenCalledWith(expectedFileName);
@@ -127,7 +121,6 @@ describe("bucketService - Integration tests", () => {
     expect(fileName1).toBe("assets/image/avatar/user1.webp");
     expect(fileName2).toBe("assets/image/profile/user2.webp");
 
-    // Verify both uploads were called
     expect(mockFile.save).toHaveBeenCalledTimes(2);
     expect(mockFile.save).toHaveBeenNthCalledWith(1, imageBuffer1, {
       metadata: {
