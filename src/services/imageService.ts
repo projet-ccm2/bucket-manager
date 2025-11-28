@@ -2,14 +2,14 @@ import sharp from "sharp";
 import { logger } from "../utils/logger";
 
 const ALLOWED_FORMATS = ["jpg", "jpeg", "png", "webp", "gif", "avif"];
-const ALLOWED_MIME_TYPES = [
+const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
   "image/jpg",
   "image/png",
   "image/webp",
   "image/gif",
   "image/avif",
-];
+]);
 
 export interface ImageValidationResult {
   isValid: boolean;
@@ -22,7 +22,7 @@ export interface ProcessedImage {
 }
 
 export function validateImageFormat(mimetype: string): ImageValidationResult {
-  if (!ALLOWED_MIME_TYPES.includes(mimetype.toLowerCase())) {
+  if (!ALLOWED_MIME_TYPES.has(mimetype.toLowerCase())) {
     return {
       isValid: false,
       error: `Image format not allowed. Allowed formats: ${ALLOWED_FORMATS.join(", ")}`,
