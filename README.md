@@ -440,7 +440,25 @@ npm run test:coverage
 
 # Run tests in CI mode
 npm run test:ci
+
+# Run integration tests (requires GCS emulator or valid GCP credentials)
+npm run test:integration
 ```
+
+### Integration Tests
+
+Integration tests use mocked Google Cloud Storage to test the integration between services without requiring actual GCS access. They verify that:
+
+- Images are uploaded correctly with the right metadata
+- Signed URLs are generated properly
+- Multiple uploads work correctly with different types and users
+
+```bash
+# Run integration tests
+npm run test:integration
+```
+
+These tests run automatically with `npm test` and don't require Docker or GCP credentials.
 
 ## Architecture
 

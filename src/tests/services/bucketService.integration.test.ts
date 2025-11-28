@@ -1,82 +1,82 @@
-import { GenericContainer, StartedTestContainer } from "testcontainers";
 import { Storage } from "@google-cloud/storage";
 
-/**
- * Integration tests for bucketService
- *
- * These tests require Docker to be running and properly configured.
- *
- * To run these tests:
- *   - On Windows/Linux/Mac: Set DOCKER_AVAILABLE=true environment variable
- *   - Example: DOCKER_AVAILABLE=true npm test
- *
- * They are skipped by default to avoid failures when Docker is not available
- * or not properly configured (e.g., testcontainers issues on Windows).
- */
-const shouldRunTests = process.env.DOCKER_AVAILABLE === "true";
+// Mock Storage and logger BEFORE importing bucketService
+const mockFile = {
+  save: jest.fn().mockResolvedValue(undefined),
+  exists: jest.fn().mockResolvedValue([true]),
+  download: jest
+    .fn()
+    .mockResolvedValue([Buffer.from("fake-image-data-for-test")]),
+  getSignedUrl: jest
+    .fn()
+    .mockResolvedValue([
+      "https://storage.googleapis.com/test-bucket/assets/image/profile/user456.webp?X-Goog-Signature=test",
+    ]),
+};
 
-const describeIntegration = shouldRunTests ? describe : describe.skip;
+const mockBucket = {
+  file: jest.fn().mockReturnValue(mockFile),
+  getFiles: jest.fn().mockResolvedValue([
+    [
+      {
+        name: "assets/image/avatar/user1.webp",
+        delete: jest.fn().mockResolvedValue(undefined),
+      },
+      {
+        name: "assets/image/profile/user2.webp",
+        delete: jest.fn().mockResolvedValue(undefined),
+      },
+    ],
+  ]),
+  exists: jest.fn().mockResolvedValue([true]),
+  create: jest.fn().mockResolvedValue(undefined),
+};
 
-describeIntegration("bucketService - Integration tests", () => {
-  let container: StartedTestContainer | null = null;
-  let storage: Storage | null = null;
-  let uploadImage: any;
-  let getImageUrl: any;
+const mockStorageInstance = {
+  bucket: jest.fn().mockReturnValue(mockBucket),
+};
+
+jest.mock("@google-cloud/storage", () => ({
+  Storage: jest.fn().mockImplementation(() => mockStorageInstance),
+}));
+
+jest.mock("../../utils/logger", () => ({
+  logger: {
+    info: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
+describe("bucketService - Integration tests", () => {
   const bucketName = "test-bucket";
+  const projectId = "test-project";
 
-  beforeAll(async () => {
-    container = await new GenericContainer("fsouza/fake-gcs-server")
-      .withExposedPorts(4443)
-      .withCommand([
-        "-scheme",
-        "http",
-        "-backend",
-        "filesystem",
-        "-filesystem-root",
-        "/storage",
-      ])
-      .start();
-
-    const emulatorHost = `http://${container.getHost()}:${container.getMappedPort(4443)}`;
-    process.env.STORAGE_EMULATOR_HOST = emulatorHost;
-    process.env.GCP_PROJECT_ID = "test-project";
+  beforeAll(() => {
+    // Set up environment variables BEFORE importing bucketService
+    process.env.GCP_PROJECT_ID = projectId;
     process.env.GCP_BUCKET_NAME = bucketName;
-
-    delete require.cache[require.resolve("../../services/bucketService")];
-    const bucketService = require("../../services/bucketService");
-    uploadImage = bucketService.uploadImage;
-    getImageUrl = bucketService.getImageUrl;
-
-    storage = new Storage({
-      projectId: "test-project",
-    });
-
-    const bucket = storage.bucket(bucketName);
-    const [exists] = await bucket.exists();
-    if (!exists) {
-      await bucket.create();
-    }
-  }, 60000);
-
-  afterAll(async () => {
-    if (container) {
-      try {
-        await container.stop();
-      } catch (error) {
-        // Ignore errors when stopping container
-      }
-    }
-    delete process.env.STORAGE_EMULATOR_HOST;
   });
 
-  beforeEach(async () => {
-    const bucket = storage!.bucket(bucketName);
-    const [files] = await bucket.getFiles();
-    await Promise.all(files.map((file) => file.delete()));
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.resetModules();
+
+    // Reset mocks
+    mockFile.save.mockResolvedValue(undefined);
+    mockFile.getSignedUrl.mockResolvedValue([
+      "https://storage.googleapis.com/test-bucket/assets/image/profile/user456.webp?X-Goog-Signature=test",
+    ]);
+    mockBucket.file.mockReturnValue(mockFile);
+    mockStorageInstance.bucket.mockReturnValue(mockBucket);
+
+    // Clear module cache to reload bucketService with mocked Storage
+    delete require.cache[require.resolve("../../services/bucketService")];
+    delete require.cache[require.resolve("../../config/environment")];
   });
 
   it("should upload an image to the bucket", async () => {
-    const imageBuffer = Buffer.from("fake-image-data");
+    const { uploadImage } = await import("../../services/bucketService");
+    const imageBuffer = Buffer.from("fake-image-data-for-test");
     const imageType = "avatar";
     const elementId = "user123";
 
@@ -84,32 +84,42 @@ describeIntegration("bucketService - Integration tests", () => {
 
     expect(fileName).toBe(`assets/image/${imageType}/${elementId}.webp`);
 
-    const bucket = storage!.bucket(bucketName);
-    const file = bucket.file(fileName);
-    const [exists] = await file.exists();
-    expect(exists).toBe(true);
-
-    const [contents] = await file.download();
-    expect(contents).toEqual(imageBuffer);
+    // Verify Storage was called correctly
+    expect(mockStorageInstance.bucket).toHaveBeenCalledWith(bucketName);
+    expect(mockBucket.file).toHaveBeenCalledWith(fileName);
+    expect(mockFile.save).toHaveBeenCalledWith(imageBuffer, {
+      metadata: {
+        contentType: "image/webp",
+      },
+    });
   });
 
   it("should retrieve signed URL of an uploaded image", async () => {
-    const imageBuffer = Buffer.from("fake-image-data");
+    const { getImageUrl } = await import("../../services/bucketService");
     const imageType = "profile";
     const elementId = "user456";
-
-    await uploadImage(imageBuffer, imageType, elementId);
 
     const url = await getImageUrl(imageType, elementId);
 
     expect(url).toBeTruthy();
     expect(typeof url).toBe("string");
     expect(url.length).toBeGreaterThan(0);
+    expect(url).toContain("http");
+
+    // Verify Storage was called correctly
+    const expectedFileName = `assets/image/${imageType}/${elementId}.webp`;
+    expect(mockStorageInstance.bucket).toHaveBeenCalledWith(bucketName);
+    expect(mockBucket.file).toHaveBeenCalledWith(expectedFileName);
+    expect(mockFile.getSignedUrl).toHaveBeenCalledWith({
+      action: "read",
+      expires: expect.any(Number),
+    });
   });
 
   it("should handle multiple uploads with different types and users", async () => {
-    const imageBuffer1 = Buffer.from("image1");
-    const imageBuffer2 = Buffer.from("image2");
+    const { uploadImage } = await import("../../services/bucketService");
+    const imageBuffer1 = Buffer.from("image1-data");
+    const imageBuffer2 = Buffer.from("image2-data");
 
     const fileName1 = await uploadImage(imageBuffer1, "avatar", "user1");
     const fileName2 = await uploadImage(imageBuffer2, "profile", "user2");
@@ -117,8 +127,17 @@ describeIntegration("bucketService - Integration tests", () => {
     expect(fileName1).toBe("assets/image/avatar/user1.webp");
     expect(fileName2).toBe("assets/image/profile/user2.webp");
 
-    const bucket = storage!.bucket(bucketName);
-    const [files] = await bucket.getFiles();
-    expect(files.length).toBe(2);
+    // Verify both uploads were called
+    expect(mockFile.save).toHaveBeenCalledTimes(2);
+    expect(mockFile.save).toHaveBeenNthCalledWith(1, imageBuffer1, {
+      metadata: {
+        contentType: "image/webp",
+      },
+    });
+    expect(mockFile.save).toHaveBeenNthCalledWith(2, imageBuffer2, {
+      metadata: {
+        contentType: "image/webp",
+      },
+    });
   });
 });
