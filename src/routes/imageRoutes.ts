@@ -17,12 +17,6 @@ router.post(
   insertImage,
 );
 
-router.get(
-  "/get",
-  validateGetImage,
-  handleValidationErrors,
-  getImage,
-);
+router.get("/get", validateGetImage, handleValidationErrors, getImage);
 
 export default router;
-

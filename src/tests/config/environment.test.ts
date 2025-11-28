@@ -125,4 +125,3 @@ describe("environment config", () => {
     expect(testConfig.bucket.keyFilename).toBe("/path/to/key.json");
   });
 });
-

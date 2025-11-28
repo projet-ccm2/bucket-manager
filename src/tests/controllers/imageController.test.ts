@@ -178,9 +178,16 @@ describe("imageController", () => {
         .spyOn(bucketService, "getImageUrl")
         .mockResolvedValue("https://signed-url.com");
 
-      await getImage(mockRequest as Request, mockResponse as Response, mockNext);
+      await getImage(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext,
+      );
 
-      expect(bucketService.getImageUrl).toHaveBeenCalledWith("avatar", "user123");
+      expect(bucketService.getImageUrl).toHaveBeenCalledWith(
+        "avatar",
+        "user123",
+      );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -198,10 +205,13 @@ describe("imageController", () => {
       const mockError = new Error("URL generation failed");
       jest.spyOn(bucketService, "getImageUrl").mockRejectedValue(mockError);
 
-      await getImage(mockRequest as Request, mockResponse as Response, mockNext);
+      await getImage(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext,
+      );
 
       expect(mockNext).toHaveBeenCalledWith(mockError);
     });
   });
 });
-

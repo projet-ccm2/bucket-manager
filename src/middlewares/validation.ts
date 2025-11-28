@@ -10,7 +10,9 @@ export const validateInsertImage = [
     .withMessage("The 'typeImage' field must be a string")
     .trim()
     .isLength({ min: 1, max: 100 })
-    .withMessage("The 'typeImage' field must contain between 1 and 100 characters"),
+    .withMessage(
+      "The 'typeImage' field must contain between 1 and 100 characters",
+    ),
   body("elementId")
     .notEmpty()
     .withMessage("The 'elementId' field is required")
@@ -18,7 +20,9 @@ export const validateInsertImage = [
     .withMessage("The 'elementId' field must be a string")
     .trim()
     .isLength({ min: 1, max: 255 })
-    .withMessage("The 'elementId' field must contain between 1 and 255 characters"),
+    .withMessage(
+      "The 'elementId' field must contain between 1 and 255 characters",
+    ),
 ];
 
 export const validateGetImage = [
@@ -29,7 +33,9 @@ export const validateGetImage = [
     .withMessage("The 'typeImage' parameter must be a string")
     .trim()
     .isLength({ min: 1, max: 100 })
-    .withMessage("The 'typeImage' parameter must contain between 1 and 100 characters"),
+    .withMessage(
+      "The 'typeImage' parameter must contain between 1 and 100 characters",
+    ),
   query("elementId")
     .notEmpty()
     .withMessage("The 'elementId' parameter is required")
@@ -37,7 +43,9 @@ export const validateGetImage = [
     .withMessage("The 'elementId' parameter must be a string")
     .trim()
     .isLength({ min: 1, max: 255 })
-    .withMessage("The 'elementId' parameter must contain between 1 and 255 characters"),
+    .withMessage(
+      "The 'elementId' parameter must contain between 1 and 255 characters",
+    ),
 ];
 
 export function handleValidationErrors(
@@ -66,4 +74,3 @@ export function handleValidationErrors(
   }
   next();
 }
-

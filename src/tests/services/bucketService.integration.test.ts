@@ -3,13 +3,13 @@ import { Storage } from "@google-cloud/storage";
 
 /**
  * Integration tests for bucketService
- * 
+ *
  * These tests require Docker to be running and properly configured.
- * 
+ *
  * To run these tests:
  *   - On Windows/Linux/Mac: Set DOCKER_AVAILABLE=true environment variable
  *   - Example: DOCKER_AVAILABLE=true npm test
- * 
+ *
  * They are skipped by default to avoid failures when Docker is not available
  * or not properly configured (e.g., testcontainers issues on Windows).
  */
@@ -27,7 +27,14 @@ describeIntegration("bucketService - Integration tests", () => {
   beforeAll(async () => {
     container = await new GenericContainer("fsouza/fake-gcs-server")
       .withExposedPorts(4443)
-      .withCommand(["-scheme", "http", "-backend", "filesystem", "-filesystem-root", "/storage"])
+      .withCommand([
+        "-scheme",
+        "http",
+        "-backend",
+        "filesystem",
+        "-filesystem-root",
+        "/storage",
+      ])
       .start();
 
     const emulatorHost = `http://${container.getHost()}:${container.getMappedPort(4443)}`;

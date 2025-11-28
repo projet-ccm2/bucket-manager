@@ -78,4 +78,3 @@ export async function getImageUrl(
     throw new Error("Failed to retrieve image URL");
   }
 }
-

@@ -100,4 +100,3 @@ describe("errorHandler", () => {
     expect(mockResponse.status).not.toHaveBeenCalled();
   });
 });
-

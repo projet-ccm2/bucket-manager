@@ -1,117 +1,100 @@
 {
-	"info": {
-		"_postman_id": "bucket-manager-api-collection",
-		"name": "Bucket Manager API",
-		"description": "Postman collection to test Bucket Manager API routes",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "Health Check",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/health",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"health"
-					]
-				},
-				"description": "Checks the health status of the server"
-			},
-			"response": []
-		},
-		{
-			"name": "Image",
-			"item": [
-				{
-					"name": "Insert Image",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "image",
-									"type": "file",
-									"src": [],
-									"description": "Image file to upload"
-								},
-								{
-									"key": "typeImage",
-									"value": "profile",
-									"type": "text",
-									"description": "Image type (1-100 characters)"
-								},
-								{
-									"key": "elementId",
-									"value": "user123",
-									"type": "text",
-									"description": "Element ID (1-255 characters)"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{baseUrl}}/bucket/image/insert",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"bucket",
-								"image",
-								"insert"
-							]
-						},
-						"description": "Upload an image to the bucket. Requires an image file, typeImage and elementId."
-					},
-					"response": []
-				},
-				{
-					"name": "Get Image",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/bucket/image/get?typeImage=profile&elementId=user123",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"bucket",
-								"image",
-								"get"
-							],
-							"query": [
-								{
-									"key": "typeImage",
-									"value": "profile",
-									"description": "Image type (1-100 characters)"
-								},
-								{
-									"key": "elementId",
-									"value": "user123",
-									"description": "Element ID (1-255 characters)"
-								}
-							]
-						},
-						"description": "Retrieves the image URL from the bucket. Requires typeImage and elementId as query parameters."
-					},
-					"response": []
-				}
-			],
-			"description": "Routes for image management"
-		}
-	],
-	"variable": [
-		{
-			"key": "baseUrl",
-			"value": "http://localhost:3000",
-			"type": "string"
-		}
-	]
+  "info": {
+    "_postman_id": "bucket-manager-api-collection",
+    "name": "Bucket Manager API",
+    "description": "Postman collection to test Bucket Manager API routes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Checks the health status of the server"
+      },
+      "response": []
+    },
+    {
+      "name": "Image",
+      "item": [
+        {
+          "name": "Insert Image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "description": "Image file to upload"
+                },
+                {
+                  "key": "typeImage",
+                  "value": "profile",
+                  "type": "text",
+                  "description": "Image type (1-100 characters)"
+                },
+                {
+                  "key": "elementId",
+                  "value": "user123",
+                  "type": "text",
+                  "description": "Element ID (1-255 characters)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bucket/image/insert",
+              "host": ["{{baseUrl}}"],
+              "path": ["bucket", "image", "insert"]
+            },
+            "description": "Upload an image to the bucket. Requires an image file, typeImage and elementId."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Image",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bucket/image/get?typeImage=profile&elementId=user123",
+              "host": ["{{baseUrl}}"],
+              "path": ["bucket", "image", "get"],
+              "query": [
+                {
+                  "key": "typeImage",
+                  "value": "profile",
+                  "description": "Image type (1-100 characters)"
+                },
+                {
+                  "key": "elementId",
+                  "value": "user123",
+                  "description": "Element ID (1-255 characters)"
+                }
+              ]
+            },
+            "description": "Retrieves the image URL from the bucket. Requires typeImage and elementId as query parameters."
+          },
+          "response": []
+        }
+      ],
+      "description": "Routes for image management"
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
 }
-

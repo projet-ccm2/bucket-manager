@@ -137,11 +137,12 @@ describe("validation middleware", () => {
       );
 
       expect(mockResponse.json).toHaveBeenCalledWith({
-        error: expect.stringContaining("typeImage: The 'typeImage' field is required"),
+        error: expect.stringContaining(
+          "typeImage: The 'typeImage' field is required",
+        ),
         status: 400,
         timestamp: expect.any(String),
       });
     });
   });
 });
-

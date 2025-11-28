@@ -420,6 +420,7 @@ The API uses Winston for professional logging:
 - **Levels**: error, warn, info, debug
 
 Logs include:
+
 - Image upload/download operations
 - Validation errors
 - GCP Storage operations
@@ -463,13 +464,13 @@ src/
 
 ## Error Codes
 
-| Code | Description                 |
-| ---- | --------------------------- |
-| 200  | Success                     |
-| 400  | Validation error            |
-| 404  | Route not found             |
-| 500  | Internal server error       |
-| 502  | External service error (GCP)|
+| Code | Description                  |
+| ---- | ---------------------------- |
+| 200  | Success                      |
+| 400  | Validation error             |
+| 404  | Route not found              |
+| 500  | Internal server error        |
+| 502  | External service error (GCP) |
 
 ## Deployment
 
@@ -496,6 +497,7 @@ docker run -p 3000:3000 --env-file .env bucket-manager
 A Postman collection is available in `Bucket_Manager_API.postman_collection.json`. Import it into Postman to test the API endpoints.
 
 The collection includes:
+
 - Health check endpoint
 - Image upload endpoint
 - Image retrieval endpoint

@@ -31,27 +31,31 @@ describe("upload middleware", () => {
       .mockReturnValue({ isValid: true });
 
     const fileFilter = (upload as any).fileFilter;
-    fileFilter(mockRequest as any, mockFile as Express.Multer.File, mockCallback);
+    fileFilter(
+      mockRequest as any,
+      mockFile as Express.Multer.File,
+      mockCallback,
+    );
 
     expect(imageService.validateImageFormat).toHaveBeenCalledWith("image/jpeg");
     expect(mockCallback).toHaveBeenCalledWith(null, true);
   });
 
   it("should reject a file with an invalid format", () => {
-    jest
-      .spyOn(imageService, "validateImageFormat")
-      .mockReturnValue({
-        isValid: false,
-        error: "Image format not allowed",
-      });
+    jest.spyOn(imageService, "validateImageFormat").mockReturnValue({
+      isValid: false,
+      error: "Image format not allowed",
+    });
 
     const fileFilter = (upload as any).fileFilter;
-    fileFilter(mockRequest as any, mockFile as Express.Multer.File, mockCallback);
+    fileFilter(
+      mockRequest as any,
+      mockFile as Express.Multer.File,
+      mockCallback,
+    );
 
     expect(imageService.validateImageFormat).toHaveBeenCalledWith("image/jpeg");
-    expect(mockCallback).toHaveBeenCalledWith(
-      expect.any(Error),
-    );
+    expect(mockCallback).toHaveBeenCalledWith(expect.any(Error));
     const error = mockCallback.mock.calls[0][0] as Error;
     expect(error.message).toContain("Image format not allowed");
   });
@@ -64,4 +68,3 @@ describe("upload middleware", () => {
     expect((upload as any).storage).toBeDefined();
   });
 });
-

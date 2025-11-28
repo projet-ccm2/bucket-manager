@@ -155,7 +155,9 @@ describe("imageService", () => {
     });
 
     it("should detect data:text/html", async () => {
-      const dangerousBuffer = Buffer.from("data:text/html,<script>alert('xss')</script>");
+      const dangerousBuffer = Buffer.from(
+        "data:text/html,<script>alert('xss')</script>",
+      );
       const result = await checkForHiddenScripts(dangerousBuffer);
       expect(result.isValid).toBe(false);
     });
@@ -176,7 +178,9 @@ describe("imageService", () => {
 
       const result = await checkForHiddenScripts(mockBuffer);
       expect(result.isValid).toBe(false);
-      expect(result.error).toContain("Error during image security verification");
+      expect(result.error).toContain(
+        "Error during image security verification",
+      );
     });
   });
 
@@ -229,4 +233,3 @@ describe("imageService", () => {
     });
   });
 });
-

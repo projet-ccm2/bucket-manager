@@ -51,7 +51,11 @@ export async function checkForHiddenScripts(
   imageBuffer: Buffer,
 ): Promise<ImageValidationResult> {
   try {
-    const bufferString = imageBuffer.toString("utf8", 0, Math.min(10000, imageBuffer.length));
+    const bufferString = imageBuffer.toString(
+      "utf8",
+      0,
+      Math.min(10000, imageBuffer.length),
+    );
 
     const dangerousPatterns = [
       /<script[\s>]/i,
@@ -96,7 +100,7 @@ export async function processImage(
   }
 
   const processedImage = await convertToWebP(imageBuffer);
-  
+
   const finalSecurityCheck = await checkForHiddenScripts(processedImage.buffer);
   if (!finalSecurityCheck.isValid) {
     throw new Error(finalSecurityCheck.error);
@@ -104,4 +108,3 @@ export async function processImage(
 
   return processedImage;
 }
-
