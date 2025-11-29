@@ -71,6 +71,30 @@ describe("environment config", () => {
     ]);
   });
 
+  it("should handle ALLOWED_ORIGINS with brackets", () => {
+    process.env.GCP_PROJECT_ID = "test-project";
+    process.env.GCP_BUCKET_NAME = "test-bucket";
+    process.env.ALLOWED_ORIGINS = "[http://example.com,http://test.com]";
+    delete require.cache[require.resolve("../../config/environment")];
+    const { config: testConfig } = require("../../config/environment");
+    expect(testConfig.cors.allowedOrigins).toEqual([
+      "http://example.com",
+      "http://test.com",
+    ]);
+  });
+
+  it("should trim whitespace from ALLOWED_ORIGINS", () => {
+    process.env.GCP_PROJECT_ID = "test-project";
+    process.env.GCP_BUCKET_NAME = "test-bucket";
+    process.env.ALLOWED_ORIGINS = "http://example.com , http://test.com";
+    delete require.cache[require.resolve("../../config/environment")];
+    const { config: testConfig } = require("../../config/environment");
+    expect(testConfig.cors.allowedOrigins).toEqual([
+      "http://example.com",
+      "http://test.com",
+    ]);
+  });
+
   it("should throw error if GCP_PROJECT_ID is missing", () => {
     delete process.env.GCP_PROJECT_ID;
     process.env.GCP_BUCKET_NAME = "test-bucket";
