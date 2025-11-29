@@ -1,4 +1,3 @@
-
 const mockFile = {
   save: jest.fn().mockResolvedValue(undefined),
   getSignedUrl: jest.fn().mockResolvedValue(["https://signed-url.com"]),

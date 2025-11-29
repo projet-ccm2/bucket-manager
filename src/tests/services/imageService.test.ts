@@ -197,11 +197,7 @@ describe("imageService", () => {
       const prefix = Buffer.alloc(50000, "a");
       const dangerousMiddle = Buffer.from("javascript:alert('xss')");
       const suffix = Buffer.alloc(50000, "b");
-      const largeBuffer = Buffer.concat([
-        prefix,
-        dangerousMiddle,
-        suffix,
-      ]);
+      const largeBuffer = Buffer.concat([prefix, dangerousMiddle, suffix]);
 
       const result = await checkForHiddenScripts(largeBuffer);
       expect(result.isValid).toBe(false);
@@ -225,11 +221,7 @@ describe("imageService", () => {
       const prefix = Buffer.alloc(chunkSize - 10, "a");
       const dangerousScript = Buffer.from("<script>alert('xss')</script>");
       const suffix = Buffer.alloc(100, "b");
-      const crossChunkBuffer = Buffer.concat([
-        prefix,
-        dangerousScript,
-        suffix,
-      ]);
+      const crossChunkBuffer = Buffer.concat([prefix, dangerousScript, suffix]);
 
       const result = await checkForHiddenScripts(crossChunkBuffer);
       expect(result.isValid).toBe(false);

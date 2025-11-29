@@ -1,4 +1,3 @@
-
 describe("environment config", () => {
   const originalEnv = process.env;
 
