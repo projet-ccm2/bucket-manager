@@ -1,4 +1,4 @@
-const mockFile = {
+const integrationMockFile = {
   save: jest.fn().mockResolvedValue(undefined),
   exists: jest.fn().mockResolvedValue([true]),
   download: jest
@@ -11,8 +11,8 @@ const mockFile = {
     ]),
 };
 
-const mockBucket = {
-  file: jest.fn().mockReturnValue(mockFile),
+const integrationMockBucket = {
+  file: jest.fn().mockReturnValue(integrationMockFile),
   getFiles: jest.fn().mockResolvedValue([
     [
       {
@@ -29,12 +29,12 @@ const mockBucket = {
   create: jest.fn().mockResolvedValue(undefined),
 };
 
-const mockStorageInstance = {
-  bucket: jest.fn().mockReturnValue(mockBucket),
+const integrationMockStorageInstance = {
+  bucket: jest.fn().mockReturnValue(integrationMockBucket),
 };
 
 jest.mock("@google-cloud/storage", () => ({
-  Storage: jest.fn().mockImplementation(() => mockStorageInstance),
+  Storage: jest.fn().mockImplementation(() => integrationMockStorageInstance),
 }));
 
 jest.mock("../../utils/logger", () => ({
@@ -57,12 +57,14 @@ describe("bucketService - Integration tests", () => {
     jest.clearAllMocks();
     jest.resetModules();
 
-    mockFile.save.mockResolvedValue(undefined);
-    mockFile.getSignedUrl.mockResolvedValue([
+    integrationMockFile.save.mockResolvedValue(undefined);
+    integrationMockFile.getSignedUrl.mockResolvedValue([
       "https://storage.googleapis.com/test-bucket/assets/image/profile/user456.webp?X-Goog-Signature=test",
     ]);
-    mockBucket.file.mockReturnValue(mockFile);
-    mockStorageInstance.bucket.mockReturnValue(mockBucket);
+    integrationMockBucket.file.mockReturnValue(integrationMockFile);
+    integrationMockStorageInstance.bucket.mockReturnValue(
+      integrationMockBucket,
+    );
 
     delete require.cache[require.resolve("../../services/bucketService")];
     delete require.cache[require.resolve("../../config/environment")];
@@ -78,9 +80,11 @@ describe("bucketService - Integration tests", () => {
 
     expect(fileName).toBe(`assets/image/${imageType}/${elementId}.webp`);
 
-    expect(mockStorageInstance.bucket).toHaveBeenCalledWith(bucketName);
-    expect(mockBucket.file).toHaveBeenCalledWith(fileName);
-    expect(mockFile.save).toHaveBeenCalledWith(imageBuffer, {
+    expect(integrationMockStorageInstance.bucket).toHaveBeenCalledWith(
+      bucketName,
+    );
+    expect(integrationMockBucket.file).toHaveBeenCalledWith(fileName);
+    expect(integrationMockFile.save).toHaveBeenCalledWith(imageBuffer, {
       metadata: {
         contentType: "image/webp",
       },
@@ -100,9 +104,11 @@ describe("bucketService - Integration tests", () => {
     expect(url).toContain("http");
 
     const expectedFileName = `assets/image/${imageType}/${elementId}.webp`;
-    expect(mockStorageInstance.bucket).toHaveBeenCalledWith(bucketName);
-    expect(mockBucket.file).toHaveBeenCalledWith(expectedFileName);
-    expect(mockFile.getSignedUrl).toHaveBeenCalledWith({
+    expect(integrationMockStorageInstance.bucket).toHaveBeenCalledWith(
+      bucketName,
+    );
+    expect(integrationMockBucket.file).toHaveBeenCalledWith(expectedFileName);
+    expect(integrationMockFile.getSignedUrl).toHaveBeenCalledWith({
       action: "read",
       expires: expect.any(Number),
     });
@@ -119,13 +125,13 @@ describe("bucketService - Integration tests", () => {
     expect(fileName1).toBe("assets/image/avatar/user1.webp");
     expect(fileName2).toBe("assets/image/profile/user2.webp");
 
-    expect(mockFile.save).toHaveBeenCalledTimes(2);
-    expect(mockFile.save).toHaveBeenNthCalledWith(1, imageBuffer1, {
+    expect(integrationMockFile.save).toHaveBeenCalledTimes(2);
+    expect(integrationMockFile.save).toHaveBeenNthCalledWith(1, imageBuffer1, {
       metadata: {
         contentType: "image/webp",
       },
     });
-    expect(mockFile.save).toHaveBeenNthCalledWith(2, imageBuffer2, {
+    expect(integrationMockFile.save).toHaveBeenNthCalledWith(2, imageBuffer2, {
       metadata: {
         contentType: "image/webp",
       },

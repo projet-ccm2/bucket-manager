@@ -11,7 +11,9 @@ const mockStorageInstance = {
   bucket: jest.fn().mockReturnValue(mockBucket),
 };
 
-const mockStorageConstructor = jest.fn().mockImplementation(() => mockStorageInstance);
+const mockStorageConstructor = jest
+  .fn()
+  .mockImplementation(() => mockStorageInstance);
 
 jest.mock("@google-cloud/storage", () => ({
   Storage: mockStorageConstructor,
