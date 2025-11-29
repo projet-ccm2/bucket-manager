@@ -1,4 +1,3 @@
-import multer from "multer";
 import { upload } from "../../middlewares/upload";
 import * as imageService from "../../services/imageService";
 

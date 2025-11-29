@@ -1,4 +1,3 @@
-import { Storage } from "@google-cloud/storage";
 
 const mockFile = {
   save: jest.fn().mockResolvedValue(undefined),
@@ -41,9 +40,6 @@ describe("bucketService - Unit tests", () => {
 
   afterEach(() => {
     jest.resetModules();
-  });
-
-  afterEach(() => {
     delete process.env.STORAGE_EMULATOR_HOST;
   });
 

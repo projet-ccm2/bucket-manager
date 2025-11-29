@@ -1,4 +1,3 @@
-import { config } from "../../config/environment";
 
 describe("environment config", () => {
   const originalEnv = process.env;

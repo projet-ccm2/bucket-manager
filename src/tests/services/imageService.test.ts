@@ -182,6 +182,66 @@ describe("imageService", () => {
         "Error during image security verification",
       );
     });
+
+    it("should detect scripts beyond 10KB mark", async () => {
+      const safePrefix = Buffer.alloc(15000, "a");
+      const dangerousSuffix = Buffer.from("<script>alert('xss')</script>");
+      const largeDangerousBuffer = Buffer.concat([safePrefix, dangerousSuffix]);
+
+      const result = await checkForHiddenScripts(largeDangerousBuffer);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain("hidden scripts");
+    });
+
+    it("should detect scripts in middle of large buffer", async () => {
+      const prefix = Buffer.alloc(50000, "a");
+      const dangerousMiddle = Buffer.from("javascript:alert('xss')");
+      const suffix = Buffer.alloc(50000, "b");
+      const largeBuffer = Buffer.concat([
+        prefix,
+        dangerousMiddle,
+        suffix,
+      ]);
+
+      const result = await checkForHiddenScripts(largeBuffer);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain("hidden scripts");
+    });
+
+    it("should scan entire buffer for small images", async () => {
+      const smallSafeBuffer = Buffer.alloc(5000, "safe image data");
+      const result = await checkForHiddenScripts(smallSafeBuffer);
+      expect(result.isValid).toBe(true);
+    });
+
+    it("should scan entire buffer for large images using chunks", async () => {
+      const largeSafeBuffer = Buffer.alloc(2 * 1024 * 1024, "safe image data");
+      const result = await checkForHiddenScripts(largeSafeBuffer);
+      expect(result.isValid).toBe(true);
+    });
+
+    it("should detect scripts across chunk boundaries", async () => {
+      const chunkSize = 1024 * 1024;
+      const prefix = Buffer.alloc(chunkSize - 10, "a");
+      const dangerousScript = Buffer.from("<script>alert('xss')</script>");
+      const suffix = Buffer.alloc(100, "b");
+      const crossChunkBuffer = Buffer.concat([
+        prefix,
+        dangerousScript,
+        suffix,
+      ]);
+
+      const result = await checkForHiddenScripts(crossChunkBuffer);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain("hidden scripts");
+    });
+
+    it("should reject buffers exceeding maximum scan size", async () => {
+      const oversizedBuffer = Buffer.alloc(11 * 1024 * 1024, "a");
+      const result = await checkForHiddenScripts(oversizedBuffer);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain("exceeds maximum allowed size");
+    });
   });
 
   describe("processImage", () => {

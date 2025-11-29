@@ -1,5 +1,3 @@
-import { Storage } from "@google-cloud/storage";
-
 const mockFile = {
   save: jest.fn().mockResolvedValue(undefined),
   exists: jest.fn().mockResolvedValue([true]),
