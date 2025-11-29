@@ -84,6 +84,46 @@ describe("errorHandler", () => {
     });
   });
 
+  it("should use 'Not found' message for 404 status code when error has no message", () => {
+    const error: any = new Error();
+    error.statusCode = 404;
+    error.message = "";
+
+    errorHandler(
+      error,
+      mockRequest as Request,
+      mockResponse as Response,
+      mockNext,
+    );
+
+    expect(mockResponse.status).toHaveBeenCalledWith(404);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      error: "Not found",
+      status: 404,
+      timestamp: expect.any(String),
+    });
+  });
+
+  it("should use 'Bad request' message for 400 status code when error has no message", () => {
+    const error: any = new Error();
+    error.statusCode = 400;
+    error.message = "";
+
+    errorHandler(
+      error,
+      mockRequest as Request,
+      mockResponse as Response,
+      mockNext,
+    );
+
+    expect(mockResponse.status).toHaveBeenCalledWith(400);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      error: "Bad request",
+      status: 400,
+      timestamp: expect.any(String),
+    });
+  });
+
   it("should call next if headers are already sent", () => {
     mockResponse.headersSent = true;
 

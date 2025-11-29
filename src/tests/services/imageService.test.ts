@@ -228,6 +228,18 @@ describe("imageService", () => {
       expect(result.error).toContain("hidden scripts");
     });
 
+    it("should detect scripts in overlap region between chunks", async () => {
+      const chunkSize = 1024 * 1024;
+      const prefix = Buffer.alloc(chunkSize, "a");
+      const dangerousScript = Buffer.from("javascript:alert('xss')");
+      const suffix = Buffer.alloc(100, "b");
+      const overlapBuffer = Buffer.concat([prefix, dangerousScript, suffix]);
+
+      const result = await checkForHiddenScripts(overlapBuffer);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain("hidden scripts");
+    });
+
     it("should reject buffers exceeding maximum scan size", async () => {
       const oversizedBuffer = Buffer.alloc(11 * 1024 * 1024, "a");
       const result = await checkForHiddenScripts(oversizedBuffer);

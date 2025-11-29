@@ -144,5 +144,32 @@ describe("validation middleware", () => {
         timestamp: expect.any(String),
       });
     });
+
+    it("should use 'field' as default path when error type is not 'field'", () => {
+      const mockErrors = [
+        {
+          type: "alternative" as any,
+          path: "typeImage",
+          msg: "Some validation error",
+        },
+      ];
+
+      (validationResult as unknown as jest.Mock).mockReturnValue({
+        isEmpty: jest.fn().mockReturnValue(false),
+        array: jest.fn().mockReturnValue(mockErrors),
+      });
+
+      handleValidationErrors(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext,
+      );
+
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        error: expect.stringContaining("field: Some validation error"),
+        status: 400,
+        timestamp: expect.any(String),
+      });
+    });
   });
 });

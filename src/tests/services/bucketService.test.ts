@@ -11,8 +11,10 @@ const mockStorageInstance = {
   bucket: jest.fn().mockReturnValue(mockBucket),
 };
 
+const mockStorageConstructor = jest.fn().mockImplementation(() => mockStorageInstance);
+
 jest.mock("@google-cloud/storage", () => ({
-  Storage: jest.fn().mockImplementation(() => mockStorageInstance),
+  Storage: mockStorageConstructor,
 }));
 
 jest.mock("../../utils/logger", () => ({
@@ -40,6 +42,8 @@ describe("bucketService - Unit tests", () => {
   afterEach(() => {
     jest.resetModules();
     delete process.env.STORAGE_EMULATOR_HOST;
+    delete process.env.GCP_KEY_FILENAME;
+    mockStorageConstructor.mockClear();
   });
 
   describe("uploadImage", () => {
@@ -118,6 +122,46 @@ describe("bucketService - Unit tests", () => {
       const { getImageUrl } = await import("../../services/bucketService");
       await expect(getImageUrl(imageType, elementId)).rejects.toThrow(
         "Failed to retrieve image URL",
+      );
+    });
+  });
+
+  describe("Storage configuration", () => {
+    it("should use keyFilename when provided and STORAGE_EMULATOR_HOST is not set", async () => {
+      delete process.env.STORAGE_EMULATOR_HOST;
+      process.env.GCP_KEY_FILENAME = "/path/to/key.json";
+      process.env.GCP_PROJECT_ID = "test-project";
+      process.env.GCP_BUCKET_NAME = "test-bucket";
+
+      jest.resetModules();
+      await import("../../services/bucketService");
+
+      expect(mockStorageConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectId: "test-project",
+          keyFilename: "/path/to/key.json",
+        }),
+      );
+    });
+
+    it("should not use keyFilename when STORAGE_EMULATOR_HOST is set", async () => {
+      process.env.STORAGE_EMULATOR_HOST = "http://localhost:9023";
+      process.env.GCP_KEY_FILENAME = "/path/to/key.json";
+      process.env.GCP_PROJECT_ID = "test-project";
+      process.env.GCP_BUCKET_NAME = "test-bucket";
+
+      jest.resetModules();
+      await import("../../services/bucketService");
+
+      expect(mockStorageConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectId: "test-project",
+        }),
+      );
+      expect(mockStorageConstructor).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          keyFilename: expect.anything(),
+        }),
       );
     });
   });
