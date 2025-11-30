@@ -33,10 +33,12 @@ function validateConfig(): Config {
     nodeEnv: process.env.NODE_ENV || "development",
     cors: {
       allowedOrigins: process.env.ALLOWED_ORIGINS
-        ? process.env.ALLOWED_ORIGINS.replace(/^\[|\]$/g, "")
+        ? process.env.ALLOWED_ORIGINS
+            .replace(/^\[/, "")
+            .replace(/\]$/, "")
             .split(",")
-            .map((origin) => origin.trim())
-            .filter((origin) => origin.length > 0)
+            .map((origin: string) => origin.trim())
+            .filter((origin: string) => origin.length > 0)
         : ["http://localhost:3000", "http://localhost:8080", "null"],
     },
     bucket: {
