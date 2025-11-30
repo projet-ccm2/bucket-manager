@@ -23,6 +23,7 @@ jest.mock("../../utils/logger", () => ({
   logger: {
     info: jest.fn(),
     error: jest.fn(),
+    warn: jest.fn(),
   },
 }));
 
@@ -260,7 +261,7 @@ describe("bucketService - Unit tests", () => {
       expect(callArgs.credentials.type).toBe("service_account");
     });
 
-    it("should throw error when credentials are invalid JSON", async () => {
+    it("should fallback to default credentials when credentials are invalid JSON", async () => {
       delete process.env.STORAGE_EMULATOR_HOST;
       delete process.env.GCP_KEY_FILENAME;
       process.env.GCP_PROJECT_ID = "test-project";
@@ -268,13 +269,14 @@ describe("bucketService - Unit tests", () => {
       process.env.GCP_SA_KEY = "invalid-json";
 
       jest.resetModules();
+      await import("../../services/bucketService");
 
-      await expect(import("../../services/bucketService")).rejects.toThrow(
-        "Invalid GCP credentials format",
-      );
+      const callArgs = mockStorageConstructor.mock.calls[0][0];
+      expect(callArgs.credentials).toBeUndefined();
+      expect(callArgs.keyFilename).toBeUndefined();
     });
 
-    it("should throw error when credentials do not start with {", async () => {
+    it("should fallback to default credentials when credentials do not start with {", async () => {
       delete process.env.STORAGE_EMULATOR_HOST;
       delete process.env.GCP_KEY_FILENAME;
       process.env.GCP_PROJECT_ID = "test-project";
@@ -282,13 +284,14 @@ describe("bucketService - Unit tests", () => {
       process.env.GCP_SA_KEY = "not-a-json-object";
 
       jest.resetModules();
+      await import("../../services/bucketService");
 
-      await expect(import("../../services/bucketService")).rejects.toThrow(
-        "Invalid GCP credentials format",
-      );
+      const callArgs = mockStorageConstructor.mock.calls[0][0];
+      expect(callArgs.credentials).toBeUndefined();
+      expect(callArgs.keyFilename).toBeUndefined();
     });
 
-    it("should throw error when JSON parsing fails", async () => {
+    it("should fallback to default credentials when JSON parsing fails", async () => {
       delete process.env.STORAGE_EMULATOR_HOST;
       delete process.env.GCP_KEY_FILENAME;
       process.env.GCP_PROJECT_ID = "test-project";
@@ -296,10 +299,11 @@ describe("bucketService - Unit tests", () => {
       process.env.GCP_SA_KEY = '{"invalid": json}';
 
       jest.resetModules();
+      await import("../../services/bucketService");
 
-      await expect(import("../../services/bucketService")).rejects.toThrow(
-        "Invalid GCP credentials format",
-      );
+      const callArgs = mockStorageConstructor.mock.calls[0][0];
+      expect(callArgs.credentials).toBeUndefined();
+      expect(callArgs.keyFilename).toBeUndefined();
     });
   });
 });
