@@ -8,9 +8,30 @@ const storageConfig: any = {
 
 if (config.bucket.credentials && !process.env.STORAGE_EMULATOR_HOST) {
   try {
-    storageConfig.credentials = JSON.parse(config.bucket.credentials);
+    let credentialsString = config.bucket.credentials.trim();
+    
+    if (
+      credentialsString.startsWith('"') &&
+      credentialsString.endsWith('"')
+    ) {
+      credentialsString = JSON.parse(credentialsString);
+    }
+    
+    if (credentialsString.startsWith("{") && credentialsString.endsWith("}")) {
+      storageConfig.credentials = JSON.parse(credentialsString);
+    } else {
+      throw new Error(
+        "Credentials must be a valid JSON object starting with '{'",
+      );
+    }
   } catch (error) {
-    logger.error("Failed to parse GCP credentials JSON", { error });
+    logger.error("Failed to parse GCP credentials JSON", {
+      error: error instanceof Error ? error.message : String(error),
+      credentialsLength: config.bucket.credentials?.length || 0,
+      credentialsPreview:
+        config.bucket.credentials?.substring(0, 200).replace(/\n/g, "\\n") ||
+        "",
+    });
     throw new Error("Invalid GCP credentials format");
   }
 } else if (config.bucket.keyFilename && !process.env.STORAGE_EMULATOR_HOST) {
