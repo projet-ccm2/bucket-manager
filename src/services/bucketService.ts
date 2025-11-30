@@ -16,23 +16,32 @@ if (config.bucket.credentials && !process.env.STORAGE_EMULATOR_HOST) {
 
     if (credentialsString.startsWith("{") && credentialsString.endsWith("}")) {
       storageConfig.credentials = JSON.parse(credentialsString);
+      logger.info("Using GCP credentials from environment variable");
     } else {
-      throw new Error(
-        "Credentials must be a valid JSON object starting with '{'",
+      logger.warn(
+        "GCP credentials format invalid, falling back to default credentials",
+        {
+          credentialsPreview: credentialsString.substring(0, 50),
+        },
       );
     }
   } catch (error) {
-    logger.error("Failed to parse GCP credentials JSON", {
-      error: error instanceof Error ? error.message : String(error),
-      credentialsLength: config.bucket.credentials?.length || 0,
-      credentialsPreview:
-        config.bucket.credentials?.substring(0, 200).replace(/\n/g, "\\n") ||
-        "",
-    });
-    throw new Error("Invalid GCP credentials format");
+    logger.warn(
+      "Failed to parse GCP credentials JSON, falling back to default credentials",
+      {
+        error: error instanceof Error ? error.message : String(error),
+        credentialsLength: config.bucket.credentials?.length || 0,
+        credentialsPreview:
+          config.bucket.credentials?.substring(0, 200).replace(/\n/g, "\\n") ||
+          "",
+      },
+    );
   }
 } else if (config.bucket.keyFilename && !process.env.STORAGE_EMULATOR_HOST) {
   storageConfig.keyFilename = config.bucket.keyFilename;
+  logger.info("Using GCP keyFilename for authentication");
+} else if (!process.env.STORAGE_EMULATOR_HOST) {
+  logger.info("Using default GCP credentials (Cloud Run service account)");
 }
 
 const storage = new Storage(storageConfig);
