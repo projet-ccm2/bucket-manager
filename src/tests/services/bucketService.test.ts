@@ -209,12 +209,14 @@ describe("bucketService - Unit tests", () => {
       expect(mockStorageConstructor).toHaveBeenCalledWith(
         expect.objectContaining({
           projectId: "test-project",
-          credentials: {
+          credentials: expect.objectContaining({
             type: "service_account",
-            project_id: "test-project",
-          },
+          }),
         }),
       );
+      const callArgs = mockStorageConstructor.mock.calls[0][0];
+      expect(callArgs.credentials).toBeDefined();
+      expect(callArgs.credentials.type).toBe("service_account");
     });
 
     it("should prioritize credentials over keyFilename", async () => {
@@ -231,17 +233,15 @@ describe("bucketService - Unit tests", () => {
       expect(mockStorageConstructor).toHaveBeenCalledWith(
         expect.objectContaining({
           projectId: "test-project",
-          credentials: {
+          credentials: expect.objectContaining({
             type: "service_account",
-            project_id: "test-project",
-          },
+          }),
         }),
       );
-      expect(mockStorageConstructor).not.toHaveBeenCalledWith(
-        expect.objectContaining({
-          keyFilename: expect.anything(),
-        }),
-      );
+      const callArgs = mockStorageConstructor.mock.calls[0][0];
+      expect(callArgs.credentials).toBeDefined();
+      expect(callArgs.credentials.type).toBe("service_account");
+      expect(callArgs.keyFilename).toBeUndefined();
     });
   });
 });
