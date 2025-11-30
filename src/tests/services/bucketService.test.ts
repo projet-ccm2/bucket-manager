@@ -243,5 +243,63 @@ describe("bucketService - Unit tests", () => {
       expect(callArgs.credentials.type).toBe("service_account");
       expect(callArgs.keyFilename).toBeUndefined();
     });
+
+    it("should handle escaped JSON string credentials", async () => {
+      delete process.env.STORAGE_EMULATOR_HOST;
+      delete process.env.GCP_KEY_FILENAME;
+      process.env.GCP_PROJECT_ID = "test-project";
+      process.env.GCP_BUCKET_NAME = "test-bucket";
+      const jsonCredentials = '{"type":"service_account","project_id":"test"}';
+      process.env.GCP_SA_KEY = JSON.stringify(jsonCredentials);
+
+      jest.resetModules();
+      await import("../../services/bucketService");
+
+      const callArgs = mockStorageConstructor.mock.calls[0][0];
+      expect(callArgs.credentials).toBeDefined();
+      expect(callArgs.credentials.type).toBe("service_account");
+    });
+
+    it("should throw error when credentials are invalid JSON", async () => {
+      delete process.env.STORAGE_EMULATOR_HOST;
+      delete process.env.GCP_KEY_FILENAME;
+      process.env.GCP_PROJECT_ID = "test-project";
+      process.env.GCP_BUCKET_NAME = "test-bucket";
+      process.env.GCP_SA_KEY = "invalid-json";
+
+      jest.resetModules();
+
+      await expect(
+        import("../../services/bucketService"),
+      ).rejects.toThrow("Invalid GCP credentials format");
+    });
+
+    it("should throw error when credentials do not start with {", async () => {
+      delete process.env.STORAGE_EMULATOR_HOST;
+      delete process.env.GCP_KEY_FILENAME;
+      process.env.GCP_PROJECT_ID = "test-project";
+      process.env.GCP_BUCKET_NAME = "test-bucket";
+      process.env.GCP_SA_KEY = "not-a-json-object";
+
+      jest.resetModules();
+
+      await expect(
+        import("../../services/bucketService"),
+      ).rejects.toThrow("Invalid GCP credentials format");
+    });
+
+    it("should throw error when JSON parsing fails", async () => {
+      delete process.env.STORAGE_EMULATOR_HOST;
+      delete process.env.GCP_KEY_FILENAME;
+      process.env.GCP_PROJECT_ID = "test-project";
+      process.env.GCP_BUCKET_NAME = "test-bucket";
+      process.env.GCP_SA_KEY = '{"invalid": json}';
+
+      jest.resetModules();
+
+      await expect(
+        import("../../services/bucketService"),
+      ).rejects.toThrow("Invalid GCP credentials format");
+    });
   });
 });
