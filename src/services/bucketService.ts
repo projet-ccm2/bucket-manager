@@ -6,7 +6,14 @@ const storageConfig: any = {
   projectId: config.bucket.projectId,
 };
 
-if (config.bucket.keyFilename && !process.env.STORAGE_EMULATOR_HOST) {
+if (config.bucket.credentials && !process.env.STORAGE_EMULATOR_HOST) {
+  try {
+    storageConfig.credentials = JSON.parse(config.bucket.credentials);
+  } catch (error) {
+    logger.error("Failed to parse GCP credentials JSON", { error });
+    throw new Error("Invalid GCP credentials format");
+  }
+} else if (config.bucket.keyFilename && !process.env.STORAGE_EMULATOR_HOST) {
   storageConfig.keyFilename = config.bucket.keyFilename;
 }
 

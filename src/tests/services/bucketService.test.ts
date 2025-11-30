@@ -45,6 +45,9 @@ describe("bucketService - Unit tests", () => {
     jest.resetModules();
     delete process.env.STORAGE_EMULATOR_HOST;
     delete process.env.GCP_KEY_FILENAME;
+    delete process.env.GCP_SA_KEY;
+    delete process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    delete process.env.GCP_SA_KEY_JSON;
     mockStorageConstructor.mockClear();
   });
 
@@ -165,6 +168,80 @@ describe("bucketService - Unit tests", () => {
           keyFilename: expect.anything(),
         }),
       );
+    });
+
+    it("should use default credentials when no credentials are provided", async () => {
+      delete process.env.STORAGE_EMULATOR_HOST;
+      delete process.env.GCP_KEY_FILENAME;
+      delete process.env.GCP_SA_KEY;
+      delete process.env.GOOGLE_APPLICATION_CREDENTIALS;
+      delete process.env.GCP_SA_KEY_JSON;
+      process.env.GCP_PROJECT_ID = "test-project";
+      process.env.GCP_BUCKET_NAME = "test-bucket";
+
+      jest.resetModules();
+      await import("../../services/bucketService");
+
+      expect(mockStorageConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectId: "test-project",
+        }),
+      );
+      expect(mockStorageConstructor).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          keyFilename: expect.anything(),
+          credentials: expect.anything(),
+        }),
+      );
+    });
+
+    it("should use credentials JSON when GCP_SA_KEY is provided", async () => {
+      delete process.env.STORAGE_EMULATOR_HOST;
+      delete process.env.GCP_KEY_FILENAME;
+      process.env.GCP_PROJECT_ID = "test-project";
+      process.env.GCP_BUCKET_NAME = "test-bucket";
+      process.env.GCP_SA_KEY =
+        '{"type":"service_account","project_id":"test-project"}';
+
+      jest.resetModules();
+      await import("../../services/bucketService");
+
+      expect(mockStorageConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectId: "test-project",
+          credentials: expect.objectContaining({
+            type: "service_account",
+          }),
+        }),
+      );
+      const callArgs = mockStorageConstructor.mock.calls[0][0];
+      expect(callArgs.credentials).toBeDefined();
+      expect(callArgs.credentials.type).toBe("service_account");
+    });
+
+    it("should prioritize credentials over keyFilename", async () => {
+      delete process.env.STORAGE_EMULATOR_HOST;
+      process.env.GCP_PROJECT_ID = "test-project";
+      process.env.GCP_BUCKET_NAME = "test-bucket";
+      process.env.GCP_KEY_FILENAME = "/path/to/key.json";
+      process.env.GCP_SA_KEY =
+        '{"type":"service_account","project_id":"test-project"}';
+
+      jest.resetModules();
+      await import("../../services/bucketService");
+
+      expect(mockStorageConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectId: "test-project",
+          credentials: expect.objectContaining({
+            type: "service_account",
+          }),
+        }),
+      );
+      const callArgs = mockStorageConstructor.mock.calls[0][0];
+      expect(callArgs.credentials).toBeDefined();
+      expect(callArgs.credentials.type).toBe("service_account");
+      expect(callArgs.keyFilename).toBeUndefined();
     });
   });
 });

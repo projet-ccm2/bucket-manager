@@ -8,6 +8,7 @@ interface Config {
     projectId: string;
     bucketName: string;
     keyFilename?: string;
+    credentials?: string;
   };
 }
 
@@ -32,13 +33,21 @@ function validateConfig(): Config {
     nodeEnv: process.env.NODE_ENV || "development",
     cors: {
       allowedOrigins: process.env.ALLOWED_ORIGINS
-        ? process.env.ALLOWED_ORIGINS.split(",")
+        ? process.env.ALLOWED_ORIGINS.replace(/^\[/, "")
+            .replace(/\]$/, "")
+            .split(",")
+            .map((origin: string) => origin.trim())
+            .filter((origin: string) => origin.length > 0)
         : ["http://localhost:3000", "http://localhost:8080", "null"],
     },
     bucket: {
       projectId,
       bucketName,
       keyFilename: process.env.GCP_KEY_FILENAME,
+      credentials:
+        process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+        process.env.GCP_SA_KEY_JSON ||
+        process.env.GCP_SA_KEY,
     },
   };
 }
