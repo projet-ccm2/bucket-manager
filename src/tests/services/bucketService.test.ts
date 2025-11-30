@@ -200,7 +200,8 @@ describe("bucketService - Unit tests", () => {
       delete process.env.GCP_KEY_FILENAME;
       process.env.GCP_PROJECT_ID = "test-project";
       process.env.GCP_BUCKET_NAME = "test-bucket";
-      process.env.GCP_SA_KEY = '{"type":"service_account","project_id":"test-project"}';
+      process.env.GCP_SA_KEY =
+        '{"type":"service_account","project_id":"test-project"}';
 
       jest.resetModules();
       await import("../../services/bucketService");
@@ -221,7 +222,8 @@ describe("bucketService - Unit tests", () => {
       process.env.GCP_PROJECT_ID = "test-project";
       process.env.GCP_BUCKET_NAME = "test-bucket";
       process.env.GCP_KEY_FILENAME = "/path/to/key.json";
-      process.env.GCP_SA_KEY = '{"type":"service_account","project_id":"test-project"}';
+      process.env.GCP_SA_KEY =
+        '{"type":"service_account","project_id":"test-project"}';
 
       jest.resetModules();
       await import("../../services/bucketService");
