@@ -33,8 +33,7 @@ function validateConfig(): Config {
     nodeEnv: process.env.NODE_ENV || "development",
     cors: {
       allowedOrigins: process.env.ALLOWED_ORIGINS
-        ? process.env.ALLOWED_ORIGINS
-            .replace(/^\[/, "")
+        ? process.env.ALLOWED_ORIGINS.replace(/^\[/, "")
             .replace(/\]$/, "")
             .split(",")
             .map((origin: string) => origin.trim())
