@@ -269,9 +269,9 @@ describe("bucketService - Unit tests", () => {
 
       jest.resetModules();
 
-      await expect(
-        import("../../services/bucketService"),
-      ).rejects.toThrow("Invalid GCP credentials format");
+      await expect(import("../../services/bucketService")).rejects.toThrow(
+        "Invalid GCP credentials format",
+      );
     });
 
     it("should throw error when credentials do not start with {", async () => {
@@ -283,9 +283,9 @@ describe("bucketService - Unit tests", () => {
 
       jest.resetModules();
 
-      await expect(
-        import("../../services/bucketService"),
-      ).rejects.toThrow("Invalid GCP credentials format");
+      await expect(import("../../services/bucketService")).rejects.toThrow(
+        "Invalid GCP credentials format",
+      );
     });
 
     it("should throw error when JSON parsing fails", async () => {
@@ -297,9 +297,9 @@ describe("bucketService - Unit tests", () => {
 
       jest.resetModules();
 
-      await expect(
-        import("../../services/bucketService"),
-      ).rejects.toThrow("Invalid GCP credentials format");
+      await expect(import("../../services/bucketService")).rejects.toThrow(
+        "Invalid GCP credentials format",
+      );
     });
   });
 });

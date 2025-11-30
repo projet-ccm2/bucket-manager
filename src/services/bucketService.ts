@@ -9,14 +9,11 @@ const storageConfig: any = {
 if (config.bucket.credentials && !process.env.STORAGE_EMULATOR_HOST) {
   try {
     let credentialsString = config.bucket.credentials.trim();
-    
-    if (
-      credentialsString.startsWith('"') &&
-      credentialsString.endsWith('"')
-    ) {
+
+    if (credentialsString.startsWith('"') && credentialsString.endsWith('"')) {
       credentialsString = JSON.parse(credentialsString);
     }
-    
+
     if (credentialsString.startsWith("{") && credentialsString.endsWith("}")) {
       storageConfig.credentials = JSON.parse(credentialsString);
     } else {
