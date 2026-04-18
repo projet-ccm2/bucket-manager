@@ -61,7 +61,10 @@ export async function convertToWebP(
     }
     throw new Error("Image cannot be compressed below 10MB");
   } catch (error) {
-    if (error instanceof Error && error.message === "Image cannot be compressed below 10MB") {
+    if (
+      error instanceof Error &&
+      error.message === "Image cannot be compressed below 10MB"
+    ) {
       throw error;
     }
     logger.error("Error converting to WebP", { error });
