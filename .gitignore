@@ -141,3 +141,5 @@ vite.config.ts.timestamp-*
 .idea
 
 key-gcp.json
+
+CLAUDE.md

@@ -59,7 +59,7 @@ describe("imageController", () => {
         .mockResolvedValue(mockProcessedImage);
       jest
         .spyOn(bucketService, "uploadImage")
-        .mockResolvedValue("assets/image/avatar/user123.webp");
+        .mockResolvedValue(undefined as unknown as string);
 
       await insertImage(
         mockRequest as Request,
@@ -76,7 +76,7 @@ describe("imageController", () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        key: "assets/image/avatar/user123.webp",
+        imageId: "user123",
         message: "Image uploaded successfully",
         timestamp: expect.any(String),
       });

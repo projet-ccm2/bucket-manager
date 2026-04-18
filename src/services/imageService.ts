@@ -11,8 +11,10 @@ const ALLOWED_MIME_TYPES = new Set([
   "image/avif",
 ]);
 
-const MAX_BUFFER_SIZE_TO_SCAN = 10 * 1024 * 1024;
+const MAX_BUFFER_SIZE_TO_SCAN = 100 * 1024 * 1024;
 const CHUNK_SIZE = 1024 * 1024;
+const TARGET_OUTPUT_SIZE = 10 * 1024 * 1024;
+const COMPRESSION_QUALITY_STEPS = [85, 70, 55, 40, 25];
 
 export interface ImageValidationResult {
   isValid: boolean;
@@ -34,17 +36,34 @@ export function validateImageFormat(mimetype: string): ImageValidationResult {
   return { isValid: true };
 }
 
+export async function cropToSquare(imageBuffer: Buffer): Promise<Buffer> {
+  try {
+    const metadata = await sharp(imageBuffer).metadata();
+    const size = Math.min(metadata.width!, metadata.height!);
+    return await sharp(imageBuffer)
+      .resize(size, size, { fit: "cover", position: "centre" })
+      .toBuffer();
+  } catch (error) {
+    logger.error("Error cropping image to square", { error });
+    throw new Error("Failed to crop image to square");
+  }
+}
+
 export async function convertToWebP(
   imageBuffer: Buffer,
 ): Promise<ProcessedImage> {
   try {
-    const webpBuffer = await sharp(imageBuffer).webp().toBuffer();
-
-    return {
-      buffer: webpBuffer,
-      format: "webp",
-    };
+    for (const quality of COMPRESSION_QUALITY_STEPS) {
+      const webpBuffer = await sharp(imageBuffer).webp({ quality }).toBuffer();
+      if (webpBuffer.length <= TARGET_OUTPUT_SIZE) {
+        return { buffer: webpBuffer, format: "webp" };
+      }
+    }
+    throw new Error("Image cannot be compressed below 10MB");
   } catch (error) {
+    if (error instanceof Error && error.message === "Image cannot be compressed below 10MB") {
+      throw error;
+    }
     logger.error("Error converting to WebP", { error });
     throw new Error("Failed to convert image to WebP");
   }
@@ -152,7 +171,8 @@ export async function processImage(
     throw new Error(securityCheck.error);
   }
 
-  const processedImage = await convertToWebP(imageBuffer);
+  const croppedBuffer = await cropToSquare(imageBuffer);
+  const processedImage = await convertToWebP(croppedBuffer);
 
   const finalSecurityCheck = await checkForHiddenScripts(processedImage.buffer);
   if (!finalSecurityCheck.isValid) {
