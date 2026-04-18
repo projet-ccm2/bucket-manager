@@ -2,6 +2,7 @@ import sharp from "sharp";
 import {
   validateImageFormat,
   convertToWebP,
+  cropToSquare,
   checkForHiddenScripts,
   processImage,
 } from "../../services/imageService";
@@ -54,6 +55,92 @@ describe("imageService", () => {
     });
   });
 
+  describe("cropToSquare", () => {
+    const mockSharp = sharp as jest.MockedFunction<typeof sharp>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("should crop a landscape image to a centered square", async () => {
+      const mockBuffer = Buffer.from("test-image-data");
+      const mockCroppedBuffer = Buffer.from("cropped-image-data");
+
+      const mockSharpInstance = {
+        metadata: jest.fn().mockResolvedValue({ width: 1920, height: 1080 }),
+        resize: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn().mockResolvedValue(mockCroppedBuffer),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      const result = await cropToSquare(mockBuffer);
+
+      expect(result).toEqual(mockCroppedBuffer);
+      expect(mockSharpInstance.resize).toHaveBeenCalledWith(1080, 1080, {
+        fit: "cover",
+        position: "centre",
+      });
+    });
+
+    it("should crop a portrait image to a centered square", async () => {
+      const mockBuffer = Buffer.from("test-image-data");
+      const mockCroppedBuffer = Buffer.from("cropped-image-data");
+
+      const mockSharpInstance = {
+        metadata: jest.fn().mockResolvedValue({ width: 720, height: 1280 }),
+        resize: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn().mockResolvedValue(mockCroppedBuffer),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      const result = await cropToSquare(mockBuffer);
+
+      expect(mockSharpInstance.resize).toHaveBeenCalledWith(720, 720, {
+        fit: "cover",
+        position: "centre",
+      });
+      expect(result).toEqual(mockCroppedBuffer);
+    });
+
+    it("should leave a square image unchanged", async () => {
+      const mockBuffer = Buffer.from("test-image-data");
+      const mockCroppedBuffer = Buffer.from("cropped-image-data");
+
+      const mockSharpInstance = {
+        metadata: jest.fn().mockResolvedValue({ width: 512, height: 512 }),
+        resize: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn().mockResolvedValue(mockCroppedBuffer),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      await cropToSquare(mockBuffer);
+
+      expect(mockSharpInstance.resize).toHaveBeenCalledWith(512, 512, {
+        fit: "cover",
+        position: "centre",
+      });
+    });
+
+    it("should throw if cropping fails", async () => {
+      const mockBuffer = Buffer.from("test-image-data");
+
+      const mockSharpInstance = {
+        metadata: jest.fn().mockRejectedValue(new Error("metadata error")),
+        resize: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn(),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      await expect(cropToSquare(mockBuffer)).rejects.toThrow(
+        "Failed to crop image to square",
+      );
+    });
+  });
+
   describe("convertToWebP", () => {
     const mockSharp = sharp as jest.MockedFunction<typeof sharp>;
 
@@ -94,6 +181,22 @@ describe("imageService", () => {
 
       await expect(convertToWebP(mockBuffer)).rejects.toThrow(
         "Failed to convert image to WebP",
+      );
+    });
+
+    it("should throw if image cannot be compressed below 10MB at any quality", async () => {
+      const mockBuffer = Buffer.from("test-image-data");
+      const largeBuffer = Buffer.alloc(11 * 1024 * 1024, "a");
+
+      const mockSharpInstance = {
+        webp: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn().mockResolvedValue(largeBuffer),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      await expect(convertToWebP(mockBuffer)).rejects.toThrow(
+        "Image cannot be compressed below 10MB",
       );
     });
   });
@@ -241,7 +344,7 @@ describe("imageService", () => {
     });
 
     it("should reject buffers exceeding maximum scan size", async () => {
-      const oversizedBuffer = Buffer.alloc(11 * 1024 * 1024, "a");
+      const oversizedBuffer = Buffer.alloc(101 * 1024 * 1024, "a");
       const result = await checkForHiddenScripts(oversizedBuffer);
       expect(result.isValid).toBe(false);
       expect(result.error).toContain("exceeds maximum allowed size");
@@ -260,6 +363,8 @@ describe("imageService", () => {
       const mockWebpBuffer = Buffer.from("webp-image-data");
 
       const mockSharpInstance = {
+        metadata: jest.fn().mockResolvedValue({ width: 100, height: 100 }),
+        resize: jest.fn().mockReturnThis(),
         webp: jest.fn().mockReturnThis(),
         toBuffer: jest.fn().mockResolvedValue(mockWebpBuffer),
       };
@@ -285,6 +390,8 @@ describe("imageService", () => {
       const dangerousWebpBuffer = Buffer.from("<script>alert('xss')</script>");
 
       const mockSharpInstance = {
+        metadata: jest.fn().mockResolvedValue({ width: 100, height: 100 }),
+        resize: jest.fn().mockReturnThis(),
         webp: jest.fn().mockReturnThis(),
         toBuffer: jest.fn().mockResolvedValue(dangerousWebpBuffer),
       };

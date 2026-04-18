@@ -59,8 +59,8 @@ describe("upload middleware", () => {
     expect(error.message).toContain("Image format not allowed");
   });
 
-  it("should have a file size limit of 10MB", () => {
-    expect((upload as any).limits.fileSize).toBe(10 * 1024 * 1024);
+  it("should have a file size limit of 100MB", () => {
+    expect((upload as any).limits.fileSize).toBe(100 * 1024 * 1024);
   });
 
   it("should use memoryStorage", () => {

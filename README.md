@@ -82,7 +82,7 @@ Upload an image to the Google Cloud Storage bucket. The image is automatically p
 ```json
 {
   "success": true,
-  "key": "assets/image/profile/user123.webp",
+  "imageId": "user123",
   "message": "Image uploaded successfully",
   "timestamp": "2024-01-15T10:30:00.000Z"
 }
@@ -249,7 +249,7 @@ paths:
                 $ref: '#/components/schemas/InsertImageResponse'
               example:
                 success: true
-                key: assets/image/profile/user123.webp
+                imageId: user123
                 message: Image uploaded successfully
                 timestamp: '2024-01-15T10:30:00.000Z'
         '400':
@@ -359,10 +359,10 @@ components:
         success:
           type: boolean
           example: true
-        key:
+        imageId:
           type: string
-          description: Storage key/path of the uploaded image
-          example: assets/image/profile/user123.webp
+          description: Identifier of the uploaded image (elementId)
+          example: user123
         message:
           type: string
           example: Image uploaded successfully
@@ -515,6 +515,7 @@ docker run -p 3000:3000 --env-file .env bucket-manager
 A Postman collection is available in `Bucket_Manager_API.postman_collection.json`. Import it into Postman to test the API endpoints.
 
 The collection includes:
+
 - Health check endpoint
 - Image upload endpoint
 - Image retrieval endpoint

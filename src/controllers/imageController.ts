@@ -30,11 +30,11 @@ export async function insertImage(
     });
 
     const processedImage = await processImage(file.buffer);
-    const key = await uploadImage(processedImage.buffer, typeImage, elementId);
+    await uploadImage(processedImage.buffer, typeImage, elementId);
 
     res.status(200).json({
       success: true,
-      key,
+      imageId: elementId,
       message: "Image uploaded successfully",
       timestamp: new Date().toISOString(),
     });
