@@ -18,13 +18,15 @@ describe("apkRoutes", () => {
 
   describe("GET /bucket/apk", () => {
     it("should call getApk and return 200", async () => {
-      jest.spyOn(apkController, "getApk").mockImplementation(async (req, res) => {
-        res.status(200).json({
-          success: true,
-          url: "https://signed-url.com/apk/app.apk",
-          timestamp: new Date().toISOString(),
+      jest
+        .spyOn(apkController, "getApk")
+        .mockImplementation(async (req, res) => {
+          res.status(200).json({
+            success: true,
+            url: "https://signed-url.com/apk/app.apk",
+            timestamp: new Date().toISOString(),
+          });
         });
-      });
 
       const response = await request(app).get("/bucket/apk");
 
@@ -35,11 +37,13 @@ describe("apkRoutes", () => {
     });
 
     it("should return 404 when APK is not found", async () => {
-      jest.spyOn(apkController, "getApk").mockImplementation(async (req, res, next) => {
-        const err: any = new Error("APK not found in bucket");
-        err.statusCode = 404;
-        next(err);
-      });
+      jest
+        .spyOn(apkController, "getApk")
+        .mockImplementation(async (req, res, next) => {
+          const err: any = new Error("APK not found in bucket");
+          err.statusCode = 404;
+          next(err);
+        });
 
       const response = await request(app).get("/bucket/apk");
 
@@ -48,11 +52,13 @@ describe("apkRoutes", () => {
     });
 
     it("should return 502 when GCS is unreachable", async () => {
-      jest.spyOn(apkController, "getApk").mockImplementation(async (req, res, next) => {
-        const err: any = new Error("Failed to reach Cloud Storage");
-        err.statusCode = 502;
-        next(err);
-      });
+      jest
+        .spyOn(apkController, "getApk")
+        .mockImplementation(async (req, res, next) => {
+          const err: any = new Error("Failed to reach Cloud Storage");
+          err.statusCode = 502;
+          next(err);
+        });
 
       const response = await request(app).get("/bucket/apk");
 
