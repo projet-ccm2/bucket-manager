@@ -3,6 +3,7 @@ import express from "express";
 import { config } from "./config/environment";
 import { logger } from "./utils/logger";
 import imageRoutes from "./routes/imageRoutes";
+import apkRoutes from "./routes/apkRoutes";
 import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
@@ -20,6 +21,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/bucket/image", imageRoutes);
+app.use("/bucket/apk", apkRoutes);
 
 app.use(errorHandler);
 

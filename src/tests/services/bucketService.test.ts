@@ -1,5 +1,6 @@
 const mockFile = {
   save: jest.fn().mockResolvedValue(undefined),
+  exists: jest.fn().mockResolvedValue([true]),
   getSignedUrl: jest.fn().mockResolvedValue(["https://signed-url.com"]),
 };
 
@@ -37,6 +38,7 @@ describe("bucketService - Unit tests", () => {
     process.env.GCP_BUCKET_NAME = "test-bucket";
 
     mockFile.save.mockResolvedValue(undefined);
+    mockFile.exists.mockResolvedValue([true]);
     mockFile.getSignedUrl.mockResolvedValue(["https://signed-url.com"]);
     mockBucket.file.mockReturnValue(mockFile);
     mockStorageInstance.bucket.mockReturnValue(mockBucket);
@@ -84,6 +86,42 @@ describe("bucketService - Unit tests", () => {
       await expect(
         uploadImage(imageBuffer, imageType, elementId),
       ).rejects.toThrow("Failed to upload image to bucket");
+    });
+  });
+
+  describe("getApkUrl", () => {
+    it("should retrieve signed URL for APK successfully", async () => {
+      const { getApkUrl } = await import("../../services/bucketService");
+
+      const result = await getApkUrl();
+
+      expect(result).toBe("https://signed-url.com");
+      expect(mockBucket.file).toHaveBeenCalledWith("apk/app.apk");
+      expect(mockFile.exists).toHaveBeenCalled();
+      expect(mockFile.getSignedUrl).toHaveBeenCalledWith({
+        action: "read",
+        expires: expect.any(Number),
+      });
+    });
+
+    it("should throw 404 error when APK file does not exist", async () => {
+      mockFile.exists.mockResolvedValue([false]);
+
+      const { getApkUrl } = await import("../../services/bucketService");
+      await expect(getApkUrl()).rejects.toMatchObject({
+        message: "APK not found in bucket",
+        statusCode: 404,
+      });
+    });
+
+    it("should throw 502 error when GCS call fails", async () => {
+      mockFile.exists.mockRejectedValue(new Error("Network error"));
+
+      const { getApkUrl } = await import("../../services/bucketService");
+      await expect(getApkUrl()).rejects.toMatchObject({
+        message: "Failed to reach Cloud Storage",
+        statusCode: 502,
+      });
     });
   });
 

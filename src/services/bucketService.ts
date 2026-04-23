@@ -81,6 +81,31 @@ export async function uploadImage(
   }
 }
 
+export async function getApkUrl(): Promise<string> {
+  const fileName = "apk/app.apk";
+  try {
+    const file = bucket.file(fileName);
+    const [exists] = await file.exists();
+    if (!exists) {
+      const err: any = new Error("APK not found in bucket");
+      err.statusCode = 404;
+      throw err;
+    }
+    const [url] = await file.getSignedUrl({
+      action: "read",
+      expires: Date.now() + 3600 * 1000,
+    });
+    logger.info("APK URL generated successfully", { fileName });
+    return url;
+  } catch (error) {
+    if ((error as any).statusCode === 404) throw error;
+    logger.error("Error generating APK URL", { error, fileName });
+    const err: any = new Error("Failed to reach Cloud Storage");
+    err.statusCode = 502;
+    throw err;
+  }
+}
+
 export async function getImageUrl(
   imageType: string,
   elementId: string,
