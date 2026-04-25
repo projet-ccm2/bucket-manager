@@ -96,7 +96,7 @@ describe("bucketService - Unit tests", () => {
       const result = await getApkUrl();
 
       expect(result).toBe("https://signed-url.com");
-      expect(mockBucket.file).toHaveBeenCalledWith("apk/app.apk");
+      expect(mockBucket.file).toHaveBeenCalledWith("test/latest.apk");
       expect(mockFile.exists).toHaveBeenCalled();
       expect(mockFile.getSignedUrl).toHaveBeenCalledWith({
         action: "read",
