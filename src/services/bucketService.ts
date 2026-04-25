@@ -82,7 +82,7 @@ export async function uploadImage(
 }
 
 export async function getApkUrl(): Promise<string> {
-  const fileName = "apk/app.apk";
+  const fileName = `${config.nodeEnv}/latest.apk`;
   try {
     const file = bucket.file(fileName);
     const [exists] = await file.exists();
