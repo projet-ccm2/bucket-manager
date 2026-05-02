@@ -19,13 +19,10 @@ export function errorHandler(
   }
 
   const statusCode = (err as any).statusCode || 500;
-  const message =
-    err.message ||
-    (statusCode === 404
-      ? "Not found"
-      : statusCode === 400
-        ? "Bad request"
-        : "Internal server error");
+  let defaultMessage = "Internal server error";
+  if (statusCode === 404) defaultMessage = "Not found";
+  else if (statusCode === 400) defaultMessage = "Bad request";
+  const message = err.message || defaultMessage;
 
   res.status(statusCode).json({
     error: message,
