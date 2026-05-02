@@ -72,6 +72,45 @@ export async function convertToWebP(
   }
 }
 
+const dangerousPatterns = [
+  /<script[\s>]/i,
+  /javascript:/i,
+  /onerror=/i,
+  /onload=/i,
+  /onclick=/i,
+  /eval\(/i,
+  /expression\(/i,
+  /vbscript:/i,
+  /data:text\/html/i,
+];
+
+function findDangerousPattern(text: string): RegExp | undefined {
+  return dangerousPatterns.find((pattern) => pattern.test(text));
+}
+
+function scanBufferChunked(imageBuffer: Buffer): ImageValidationResult {
+  const OVERLAP_SIZE = 200;
+  for (let offset = 0; offset < imageBuffer.length; offset += CHUNK_SIZE) {
+    const chunkEnd = Math.min(offset + CHUNK_SIZE, imageBuffer.length);
+
+    const match = findDangerousPattern(imageBuffer.subarray(offset, chunkEnd).toString("utf8"));
+    if (match) {
+      logger.warn("Hidden script detected in image", { pattern: match.toString(), offset });
+      return { isValid: false, error: "Image contains potentially dangerous hidden scripts" };
+    }
+
+    if (chunkEnd < imageBuffer.length) {
+      const overlapEnd = Math.min(chunkEnd + OVERLAP_SIZE, imageBuffer.length);
+      const overlapMatch = findDangerousPattern(imageBuffer.subarray(chunkEnd, overlapEnd).toString("utf8"));
+      if (overlapMatch) {
+        logger.warn("Hidden script detected in image overlap region", { pattern: overlapMatch.toString(), offset: chunkEnd });
+        return { isValid: false, error: "Image contains potentially dangerous hidden scripts" };
+      }
+    }
+  }
+  return { isValid: true };
+}
+
 export async function checkForHiddenScripts(
   imageBuffer: Buffer,
 ): Promise<ImageValidationResult> {
@@ -81,88 +120,22 @@ export async function checkForHiddenScripts(
         bufferSize: imageBuffer.length,
         maxSize: MAX_BUFFER_SIZE_TO_SCAN,
       });
-      return {
-        isValid: false,
-        error: "Image size exceeds maximum allowed size",
-      };
+      return { isValid: false, error: "Image size exceeds maximum allowed size" };
     }
-
-    const dangerousPatterns = [
-      /<script[\s>]/i,
-      /javascript:/i,
-      /onerror=/i,
-      /onload=/i,
-      /onclick=/i,
-      /eval\(/i,
-      /expression\(/i,
-      /vbscript:/i,
-      /data:text\/html/i,
-    ];
 
     if (imageBuffer.length <= CHUNK_SIZE) {
-      const bufferString = imageBuffer.toString("utf8");
-      for (const pattern of dangerousPatterns) {
-        if (pattern.test(bufferString)) {
-          logger.warn("Hidden script detected in image", {
-            pattern: pattern.toString(),
-          });
-          return {
-            isValid: false,
-            error: "Image contains potentially dangerous hidden scripts",
-          };
-        }
+      const match = findDangerousPattern(imageBuffer.toString("utf8"));
+      if (match) {
+        logger.warn("Hidden script detected in image", { pattern: match.toString() });
+        return { isValid: false, error: "Image contains potentially dangerous hidden scripts" };
       }
-    } else {
-      const OVERLAP_SIZE = 200;
-      for (let offset = 0; offset < imageBuffer.length; offset += CHUNK_SIZE) {
-        const chunkEnd = Math.min(offset + CHUNK_SIZE, imageBuffer.length);
-        const chunk = imageBuffer.subarray(offset, chunkEnd);
-        const chunkString = chunk.toString("utf8");
-
-        for (const pattern of dangerousPatterns) {
-          if (pattern.test(chunkString)) {
-            logger.warn("Hidden script detected in image", {
-              pattern: pattern.toString(),
-              offset,
-            });
-            return {
-              isValid: false,
-              error: "Image contains potentially dangerous hidden scripts",
-            };
-          }
-        }
-
-        if (chunkEnd < imageBuffer.length) {
-          const overlapEnd = Math.min(
-            chunkEnd + OVERLAP_SIZE,
-            imageBuffer.length,
-          );
-          const overlapChunk = imageBuffer.subarray(chunkEnd, overlapEnd);
-          const overlapString = overlapChunk.toString("utf8");
-
-          for (const pattern of dangerousPatterns) {
-            if (pattern.test(overlapString)) {
-              logger.warn("Hidden script detected in image overlap region", {
-                pattern: pattern.toString(),
-                offset: chunkEnd,
-              });
-              return {
-                isValid: false,
-                error: "Image contains potentially dangerous hidden scripts",
-              };
-            }
-          }
-        }
-      }
+      return { isValid: true };
     }
 
-    return { isValid: true };
+    return scanBufferChunked(imageBuffer);
   } catch (error) {
     logger.error("Error during security check", { error });
-    return {
-      isValid: false,
-      error: "Error during image security verification",
-    };
+    return { isValid: false, error: "Error during image security verification" };
   }
 }
 
