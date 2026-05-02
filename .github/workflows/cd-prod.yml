@@ -22,6 +22,7 @@ jobs:
       environment: production
       cloud-run-service-name: bucket-manager-prod
       cloud-run-port: "3000"
+      service_type: back_prive
 
     secrets:
       GCP_SA_KEY: ${{ secrets.PROD_GCP_SA_KEY }}
