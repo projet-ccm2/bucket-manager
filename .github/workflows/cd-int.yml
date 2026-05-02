@@ -28,6 +28,7 @@ jobs:
       environment: integration
       cloud-run-service-name: bucket-manager-int
       cloud-run-port: "3000"
+      service_type: back_prive
     secrets:
       GCP_SA_KEY: ${{ secrets.INT_GCP_SA_KEY }}
       GCP_PROJECT_ID: ${{ secrets.INT_GCP_PROJECT_ID }}
