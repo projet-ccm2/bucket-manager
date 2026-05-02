@@ -1,0 +1,406 @@
+import sharp from "sharp";
+import {
+  validateImageFormat,
+  convertToWebP,
+  cropToSquare,
+  checkForHiddenScripts,
+  processImage,
+} from "../../services/imageService";
+
+jest.mock("sharp");
+jest.mock("../../utils/logger", () => ({
+  logger: {
+    error: jest.fn(),
+    warn: jest.fn(),
+  },
+}));
+
+describe("imageService", () => {
+  describe("validateImageFormat", () => {
+    it("should return isValid true for a valid format", () => {
+      const result = validateImageFormat("image/jpeg");
+      expect(result.isValid).toBe(true);
+      expect(result.error).toBeUndefined();
+    });
+
+    it("should return isValid true for image/png", () => {
+      const result = validateImageFormat("image/png");
+      expect(result.isValid).toBe(true);
+    });
+
+    it("should return isValid true for image/webp", () => {
+      const result = validateImageFormat("image/webp");
+      expect(result.isValid).toBe(true);
+    });
+
+    it("should return isValid true for image/gif", () => {
+      const result = validateImageFormat("image/gif");
+      expect(result.isValid).toBe(true);
+    });
+
+    it("should return isValid true for image/avif", () => {
+      const result = validateImageFormat("image/avif");
+      expect(result.isValid).toBe(true);
+    });
+
+    it("should return isValid false for an invalid format", () => {
+      const result = validateImageFormat("image/bmp");
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain("Image format not allowed");
+    });
+
+    it("should be case insensitive", () => {
+      const result = validateImageFormat("IMAGE/JPEG");
+      expect(result.isValid).toBe(true);
+    });
+  });
+
+  describe("cropToSquare", () => {
+    const mockSharp = sharp as jest.MockedFunction<typeof sharp>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("should crop a landscape image to a centered square", async () => {
+      const mockBuffer = Buffer.from("test-image-data");
+      const mockCroppedBuffer = Buffer.from("cropped-image-data");
+
+      const mockSharpInstance = {
+        metadata: jest.fn().mockResolvedValue({ width: 1920, height: 1080 }),
+        resize: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn().mockResolvedValue(mockCroppedBuffer),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      const result = await cropToSquare(mockBuffer);
+
+      expect(result).toEqual(mockCroppedBuffer);
+      expect(mockSharpInstance.resize).toHaveBeenCalledWith(1080, 1080, {
+        fit: "cover",
+        position: "centre",
+      });
+    });
+
+    it("should crop a portrait image to a centered square", async () => {
+      const mockBuffer = Buffer.from("test-image-data");
+      const mockCroppedBuffer = Buffer.from("cropped-image-data");
+
+      const mockSharpInstance = {
+        metadata: jest.fn().mockResolvedValue({ width: 720, height: 1280 }),
+        resize: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn().mockResolvedValue(mockCroppedBuffer),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      const result = await cropToSquare(mockBuffer);
+
+      expect(mockSharpInstance.resize).toHaveBeenCalledWith(720, 720, {
+        fit: "cover",
+        position: "centre",
+      });
+      expect(result).toEqual(mockCroppedBuffer);
+    });
+
+    it("should leave a square image unchanged", async () => {
+      const mockBuffer = Buffer.from("test-image-data");
+      const mockCroppedBuffer = Buffer.from("cropped-image-data");
+
+      const mockSharpInstance = {
+        metadata: jest.fn().mockResolvedValue({ width: 512, height: 512 }),
+        resize: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn().mockResolvedValue(mockCroppedBuffer),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      await cropToSquare(mockBuffer);
+
+      expect(mockSharpInstance.resize).toHaveBeenCalledWith(512, 512, {
+        fit: "cover",
+        position: "centre",
+      });
+    });
+
+    it("should throw if cropping fails", async () => {
+      const mockBuffer = Buffer.from("test-image-data");
+
+      const mockSharpInstance = {
+        metadata: jest.fn().mockRejectedValue(new Error("metadata error")),
+        resize: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn(),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      await expect(cropToSquare(mockBuffer)).rejects.toThrow(
+        "Failed to crop image to square",
+      );
+    });
+  });
+
+  describe("convertToWebP", () => {
+    const mockSharp = sharp as jest.MockedFunction<typeof sharp>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("should convert an image to WebP successfully", async () => {
+      const mockBuffer = Buffer.from("test-image-data");
+      const mockWebpBuffer = Buffer.from("webp-image-data");
+
+      const mockSharpInstance = {
+        webp: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn().mockResolvedValue(mockWebpBuffer),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      const result = await convertToWebP(mockBuffer);
+
+      expect(result.buffer).toEqual(mockWebpBuffer);
+      expect(result.format).toBe("webp");
+      expect(mockSharp).toHaveBeenCalledWith(mockBuffer);
+      expect(mockSharpInstance.webp).toHaveBeenCalled();
+      expect(mockSharpInstance.toBuffer).toHaveBeenCalled();
+    });
+
+    it("should throw an error if conversion fails", async () => {
+      const mockBuffer = Buffer.from("test-image-data");
+      const mockError = new Error("Conversion failed");
+
+      const mockSharpInstance = {
+        webp: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn().mockRejectedValue(mockError),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      await expect(convertToWebP(mockBuffer)).rejects.toThrow(
+        "Failed to convert image to WebP",
+      );
+    });
+
+    it("should throw if image cannot be compressed below 10MB at any quality", async () => {
+      const mockBuffer = Buffer.from("test-image-data");
+      const largeBuffer = Buffer.alloc(11 * 1024 * 1024, "a");
+
+      const mockSharpInstance = {
+        webp: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn().mockResolvedValue(largeBuffer),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      await expect(convertToWebP(mockBuffer)).rejects.toThrow(
+        "Image cannot be compressed below 10MB",
+      );
+    });
+  });
+
+  describe("checkForHiddenScripts", () => {
+    it("should return isValid true for a buffer without scripts", async () => {
+      const safeBuffer = Buffer.from("safe image data");
+      const result = await checkForHiddenScripts(safeBuffer);
+      expect(result.isValid).toBe(true);
+    });
+
+    it("should detect a script tag", async () => {
+      const dangerousBuffer = Buffer.from("<script>alert('xss')</script>");
+      const result = await checkForHiddenScripts(dangerousBuffer);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain("hidden scripts");
+    });
+
+    it("should detect javascript:", async () => {
+      const dangerousBuffer = Buffer.from("javascript:alert('xss')");
+      const result = await checkForHiddenScripts(dangerousBuffer);
+      expect(result.isValid).toBe(false);
+    });
+
+    it("should detect onerror=", async () => {
+      const dangerousBuffer = Buffer.from("onerror=alert('xss')");
+      const result = await checkForHiddenScripts(dangerousBuffer);
+      expect(result.isValid).toBe(false);
+    });
+
+    it("should detect onload=", async () => {
+      const dangerousBuffer = Buffer.from("onload=alert('xss')");
+      const result = await checkForHiddenScripts(dangerousBuffer);
+      expect(result.isValid).toBe(false);
+    });
+
+    it("should detect onclick=", async () => {
+      const dangerousBuffer = Buffer.from("onclick=alert('xss')");
+      const result = await checkForHiddenScripts(dangerousBuffer);
+      expect(result.isValid).toBe(false);
+    });
+
+    it("should detect eval(", async () => {
+      const dangerousBuffer = Buffer.from("eval('malicious code')");
+      const result = await checkForHiddenScripts(dangerousBuffer);
+      expect(result.isValid).toBe(false);
+    });
+
+    it("should detect expression(", async () => {
+      const dangerousBuffer = Buffer.from("expression('malicious')");
+      const result = await checkForHiddenScripts(dangerousBuffer);
+      expect(result.isValid).toBe(false);
+    });
+
+    it("should detect vbscript:", async () => {
+      const dangerousBuffer = Buffer.from("vbscript:alert('xss')");
+      const result = await checkForHiddenScripts(dangerousBuffer);
+      expect(result.isValid).toBe(false);
+    });
+
+    it("should detect data:text/html", async () => {
+      const dangerousBuffer = Buffer.from(
+        "data:text/html,<script>alert('xss')</script>",
+      );
+      const result = await checkForHiddenScripts(dangerousBuffer);
+      expect(result.isValid).toBe(false);
+    });
+
+    it("should be case insensitive", async () => {
+      const dangerousBuffer = Buffer.from("<SCRIPT>alert('xss')</SCRIPT>");
+      const result = await checkForHiddenScripts(dangerousBuffer);
+      expect(result.isValid).toBe(false);
+    });
+
+    it("should return an error if verification fails", async () => {
+      const mockBuffer = {
+        toString: jest.fn().mockImplementation(() => {
+          throw new Error("Buffer error");
+        }),
+        length: 100,
+      } as any;
+
+      const result = await checkForHiddenScripts(mockBuffer);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain(
+        "Error during image security verification",
+      );
+    });
+
+    it("should detect scripts beyond 10KB mark", async () => {
+      const safePrefix = Buffer.alloc(15000, "a");
+      const dangerousSuffix = Buffer.from("<script>alert('xss')</script>");
+      const largeDangerousBuffer = Buffer.concat([safePrefix, dangerousSuffix]);
+
+      const result = await checkForHiddenScripts(largeDangerousBuffer);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain("hidden scripts");
+    });
+
+    it("should detect scripts in middle of large buffer", async () => {
+      const prefix = Buffer.alloc(50000, "a");
+      const dangerousMiddle = Buffer.from("javascript:alert('xss')");
+      const suffix = Buffer.alloc(50000, "b");
+      const largeBuffer = Buffer.concat([prefix, dangerousMiddle, suffix]);
+
+      const result = await checkForHiddenScripts(largeBuffer);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain("hidden scripts");
+    });
+
+    it("should scan entire buffer for small images", async () => {
+      const smallSafeBuffer = Buffer.alloc(5000, "safe image data");
+      const result = await checkForHiddenScripts(smallSafeBuffer);
+      expect(result.isValid).toBe(true);
+    });
+
+    it("should scan entire buffer for large images using chunks", async () => {
+      const largeSafeBuffer = Buffer.alloc(2 * 1024 * 1024, "safe image data");
+      const result = await checkForHiddenScripts(largeSafeBuffer);
+      expect(result.isValid).toBe(true);
+    });
+
+    it("should detect scripts across chunk boundaries", async () => {
+      const chunkSize = 1024 * 1024;
+      const prefix = Buffer.alloc(chunkSize - 10, "a");
+      const dangerousScript = Buffer.from("<script>alert('xss')</script>");
+      const suffix = Buffer.alloc(100, "b");
+      const crossChunkBuffer = Buffer.concat([prefix, dangerousScript, suffix]);
+
+      const result = await checkForHiddenScripts(crossChunkBuffer);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain("hidden scripts");
+    });
+
+    it("should detect scripts in overlap region between chunks", async () => {
+      const chunkSize = 1024 * 1024;
+      const prefix = Buffer.alloc(chunkSize, "a");
+      const dangerousScript = Buffer.from("javascript:alert('xss')");
+      const suffix = Buffer.alloc(100, "b");
+      const overlapBuffer = Buffer.concat([prefix, dangerousScript, suffix]);
+
+      const result = await checkForHiddenScripts(overlapBuffer);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain("hidden scripts");
+    });
+
+    it("should reject buffers exceeding maximum scan size", async () => {
+      const oversizedBuffer = Buffer.alloc(101 * 1024 * 1024, "a");
+      const result = await checkForHiddenScripts(oversizedBuffer);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain("exceeds maximum allowed size");
+    });
+  });
+
+  describe("processImage", () => {
+    const mockSharp = sharp as jest.MockedFunction<typeof sharp>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("should process a valid image successfully", async () => {
+      const mockBuffer = Buffer.from("safe image data");
+      const mockWebpBuffer = Buffer.from("webp-image-data");
+
+      const mockSharpInstance = {
+        metadata: jest.fn().mockResolvedValue({ width: 100, height: 100 }),
+        resize: jest.fn().mockReturnThis(),
+        webp: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn().mockResolvedValue(mockWebpBuffer),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      const result = await processImage(mockBuffer);
+
+      expect(result.buffer).toEqual(mockWebpBuffer);
+      expect(result.format).toBe("webp");
+    });
+
+    it("should reject if scripts are detected in the original image", async () => {
+      const dangerousBuffer = Buffer.from("<script>alert('xss')</script>");
+
+      await expect(processImage(dangerousBuffer)).rejects.toThrow(
+        "Image contains potentially dangerous hidden scripts",
+      );
+    });
+
+    it("should reject if scripts are detected in the converted image", async () => {
+      const mockBuffer = Buffer.from("safe image data");
+      const dangerousWebpBuffer = Buffer.from("<script>alert('xss')</script>");
+
+      const mockSharpInstance = {
+        metadata: jest.fn().mockResolvedValue({ width: 100, height: 100 }),
+        resize: jest.fn().mockReturnThis(),
+        webp: jest.fn().mockReturnThis(),
+        toBuffer: jest.fn().mockResolvedValue(dangerousWebpBuffer),
+      };
+
+      mockSharp.mockReturnValue(mockSharpInstance as any);
+
+      await expect(processImage(mockBuffer)).rejects.toThrow(
+        "Image contains potentially dangerous hidden scripts",
+      );
+    });
+  });
+});

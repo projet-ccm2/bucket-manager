@@ -1,0 +1,35 @@
+name: Deploy to Development
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+    inputs:
+      image-tag:
+        description: "Docker image tag to deploy (default: dev-{sha})"
+        required: false
+        type: string
+        default: ""
+      force-deploy:
+        description: "Force deployment even if no changes"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  deploy-dev:
+    name: Deploy to Development
+    uses: projet-ccm2/shared-workflows/.github/workflows/nodejs-cd.yml@main
+    if: github.event_name != 'pull_request'
+    with:
+      docker-image-name: bucket-manager-api-dev
+      docker-tag: ${{ github.event.inputs.image-tag || format('dev-{0}', github.sha) }}
+      artifact-registry-repository: "bucket-manager-docker-dev"
+      environment: development
+      cloud-run-service-name: bucket-manager-dev
+      cloud-run-port: "3000"
+    secrets:
+      GCP_SA_KEY: ${{ secrets.DEV_GCP_SA_KEY }}
+      GCP_PROJECT_ID: ${{ secrets.DEV_GCP_PROJECT_ID }}
+      GCP_BUCKET_NAME: ${{ secrets.DEV_GCP_BUCKET_NAME }}
+      ALLOWED_ORIGINS: ${{ secrets.DEV_ALLOWED_ORIGINS }}

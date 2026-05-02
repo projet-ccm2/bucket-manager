@@ -1,0 +1,30 @@
+name: Deploy to Production
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to deploy (e.g., v1.2.3)"
+        required: true
+        type: string
+
+jobs:
+  deploy-prod:
+    name: Deploy to Production
+    uses: projet-ccm2/shared-workflows/.github/workflows/nodejs-cd.yml@main
+    if: github.event_name != 'pull_request'
+    with:
+      docker-image-name: bucket-manager-api-prod
+      docker-tag: ${{ github.event.inputs.version || github.ref_name || format('prod-{0}', github.sha) }}
+      artifact-registry-repository: "bucket-manager-docker-prod"
+      environment: production
+      cloud-run-service-name: bucket-manager-prod
+      cloud-run-port: "3000"
+
+    secrets:
+      GCP_SA_KEY: ${{ secrets.PROD_GCP_SA_KEY }}
+      GCP_PROJECT_ID: ${{ secrets.PROD_GCP_PROJECT_ID }}
+      GCP_BUCKET_NAME: ${{ secrets.PROD_GCP_BUCKET_NAME }}
+      ALLOWED_ORIGINS: ${{ secrets.PROD_ALLOWED_ORIGINS }}
