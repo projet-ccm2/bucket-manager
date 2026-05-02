@@ -32,8 +32,9 @@ if (config.bucket.credentials && !process.env.STORAGE_EMULATOR_HOST) {
         error: error instanceof Error ? error.message : String(error),
         credentialsLength: config.bucket.credentials?.length || 0,
         credentialsPreview:
-          config.bucket.credentials?.substring(0, 200).replaceAll("\n", String.raw`\n`) ||
-          "",
+          config.bucket.credentials
+            ?.substring(0, 200)
+            .replaceAll("\n", String.raw`\n`) || "",
       },
     );
   }

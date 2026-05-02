@@ -93,18 +93,34 @@ function scanBufferChunked(imageBuffer: Buffer): ImageValidationResult {
   for (let offset = 0; offset < imageBuffer.length; offset += CHUNK_SIZE) {
     const chunkEnd = Math.min(offset + CHUNK_SIZE, imageBuffer.length);
 
-    const match = findDangerousPattern(imageBuffer.subarray(offset, chunkEnd).toString("utf8"));
+    const match = findDangerousPattern(
+      imageBuffer.subarray(offset, chunkEnd).toString("utf8"),
+    );
     if (match) {
-      logger.warn("Hidden script detected in image", { pattern: match.toString(), offset });
-      return { isValid: false, error: "Image contains potentially dangerous hidden scripts" };
+      logger.warn("Hidden script detected in image", {
+        pattern: match.toString(),
+        offset,
+      });
+      return {
+        isValid: false,
+        error: "Image contains potentially dangerous hidden scripts",
+      };
     }
 
     if (chunkEnd < imageBuffer.length) {
       const overlapEnd = Math.min(chunkEnd + OVERLAP_SIZE, imageBuffer.length);
-      const overlapMatch = findDangerousPattern(imageBuffer.subarray(chunkEnd, overlapEnd).toString("utf8"));
+      const overlapMatch = findDangerousPattern(
+        imageBuffer.subarray(chunkEnd, overlapEnd).toString("utf8"),
+      );
       if (overlapMatch) {
-        logger.warn("Hidden script detected in image overlap region", { pattern: overlapMatch.toString(), offset: chunkEnd });
-        return { isValid: false, error: "Image contains potentially dangerous hidden scripts" };
+        logger.warn("Hidden script detected in image overlap region", {
+          pattern: overlapMatch.toString(),
+          offset: chunkEnd,
+        });
+        return {
+          isValid: false,
+          error: "Image contains potentially dangerous hidden scripts",
+        };
       }
     }
   }
@@ -120,14 +136,22 @@ export async function checkForHiddenScripts(
         bufferSize: imageBuffer.length,
         maxSize: MAX_BUFFER_SIZE_TO_SCAN,
       });
-      return { isValid: false, error: "Image size exceeds maximum allowed size" };
+      return {
+        isValid: false,
+        error: "Image size exceeds maximum allowed size",
+      };
     }
 
     if (imageBuffer.length <= CHUNK_SIZE) {
       const match = findDangerousPattern(imageBuffer.toString("utf8"));
       if (match) {
-        logger.warn("Hidden script detected in image", { pattern: match.toString() });
-        return { isValid: false, error: "Image contains potentially dangerous hidden scripts" };
+        logger.warn("Hidden script detected in image", {
+          pattern: match.toString(),
+        });
+        return {
+          isValid: false,
+          error: "Image contains potentially dangerous hidden scripts",
+        };
       }
       return { isValid: true };
     }
@@ -135,7 +159,10 @@ export async function checkForHiddenScripts(
     return scanBufferChunked(imageBuffer);
   } catch (error) {
     logger.error("Error during security check", { error });
-    return { isValid: false, error: "Error during image security verification" };
+    return {
+      isValid: false,
+      error: "Error during image security verification",
+    };
   }
 }
 
